@@ -29,10 +29,12 @@ def install(app_id: str, yes: bool = False) -> None:
     app = find_app(app_id)
     installed = dpkg.installed_version(app["package"])
     if installed:
+        upsert_installed(app, "import", installed)
         if not dpkg.compare_versions(installed, "lt", app["version"]):
             print(f"已安装 {app_id}，当前版本 {installed} 不低于索引版本 {app['version']}。")
+            print(f"已添加到 Spork 已安装列表：{app_id} {installed}")
             return
-        print(f"已安装旧版本 {installed}，可执行 spork update {app_id}。")
+        print(f"已安装旧版本 {installed}，已添加到 Spork 已安装列表。可执行 spork update {app_id}。")
         return
     show_install_plan(app, "install")
     if not app.get("sha256"):
