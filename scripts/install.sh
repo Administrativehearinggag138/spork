@@ -2,7 +2,9 @@
 set -eu
 
 APP_NAME="spork"
-PROJECT_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+DEFAULT_SPORK_REPO_URL="https://github.com/Enkialon/spork.git"
+SPORK_REPO_URL="${SPORK_REPO_URL:-$DEFAULT_SPORK_REPO_URL}"
+SPORK_REF="${SPORK_REF:-}"
 SPORK_ROOT="${SPORK_HOME:-$HOME/.$APP_NAME}"
 CONFIG_DIR="$SPORK_ROOT/config"
 BUCKETS_DIR="$SPORK_ROOT/buckets"
@@ -17,6 +19,7 @@ COMMAND_TARGET="$CURRENT_DIR/scripts/spork"
 DEFAULT_BUCKET_NAME="${SPORK_DEFAULT_BUCKET_NAME:-main}"
 DEFAULT_BUCKET_URL="${SPORK_DEFAULT_BUCKET_URL:-https://github.com/Enkialon/spork-bucket.git}"
 DEFAULT_BUCKET_DIR="$BUCKETS_DIR/$DEFAULT_BUCKET_NAME"
+LOCAL_PROJECT_ROOT=""
 
 need_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -42,6 +45,24 @@ detect_language() {
     zh*|ZH*) printf 'zh' ;;
     *) printf 'en' ;;
   esac
+}
+
+detect_local_project_root() {
+  script_path=$0
+  case "$script_path" in
+    */*) ;;
+    *) return 0 ;;
+  esac
+
+  if [ ! -f "$script_path" ]; then
+    return 0
+  fi
+
+  script_dir=$(CDPATH= cd -- "$(dirname -- "$script_path")" && pwd)
+  project_root=$(CDPATH= cd -- "$script_dir/.." && pwd)
+  if [ -f "$project_root/src/spork/cli.py" ] && [ -f "$project_root/scripts/spork" ]; then
+    printf '%s' "$project_root"
+  fi
 }
 
 normalize_package_manager() {
@@ -109,11 +130,48 @@ manager_commands() {
   esac
 }
 
+install_spork_source() {
+  if [ -f "$COMMAND_TARGET" ]; then
+    return 0
+  fi
+
+  source_url=$SPORK_REPO_URL
+  if [ -n "$LOCAL_PROJECT_ROOT" ]; then
+    local_origin=$(git -C "$LOCAL_PROJECT_ROOT" config --get remote.origin.url || true)
+    if [ -n "$local_origin" ]; then
+      source_url=$local_origin
+    else
+      source_url=$LOCAL_PROJECT_ROOT
+    fi
+  fi
+
+  if [ -e "$CURRENT_DIR" ]; then
+    echo "error: $CURRENT_DIR already exists but $COMMAND_TARGET is missing." >&2
+    echo "Remove it or set SPORK_HOME to a different install root, then run the installer again." >&2
+    exit 1
+  fi
+
+  echo "Downloading Spork source from: $source_url"
+  if ! git clone "$source_url" "$CURRENT_DIR"; then
+    if [ -n "$LOCAL_PROJECT_ROOT" ] && [ "$source_url" != "$LOCAL_PROJECT_ROOT" ]; then
+      echo "warning: failed to clone $source_url; falling back to local checkout: $LOCAL_PROJECT_ROOT" >&2
+      git clone "$LOCAL_PROJECT_ROOT" "$CURRENT_DIR"
+    else
+      exit 1
+    fi
+  fi
+
+  if [ -n "$SPORK_REF" ]; then
+    git -C "$CURRENT_DIR" checkout "$SPORK_REF"
+  fi
+}
+
 LANGUAGE=$(detect_language)
 PACKAGE_MANAGER=$(detect_package_manager)
 ARCH=$(detect_arch)
+LOCAL_PROJECT_ROOT=$(detect_local_project_root)
 
-echo "Installing Spork from: $PROJECT_ROOT"
+echo "Installing Spork into: $SPORK_ROOT"
 echo "Detected package manager: $PACKAGE_MANAGER"
 
 missing=0
@@ -138,21 +196,7 @@ mkdir -p \
   "$SPORK_APP_DIR" \
   "$SHIMS_DIR"
 
-if [ "$PROJECT_ROOT" != "$CURRENT_DIR" ]; then
-  if [ ! -e "$CURRENT_DIR" ]; then
-    if git -C "$PROJECT_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-      SOURCE_URL=$(git -C "$PROJECT_ROOT" config --get remote.origin.url || true)
-      if [ -z "$SOURCE_URL" ]; then
-        SOURCE_URL=$PROJECT_ROOT
-      fi
-      if ! git clone "$SOURCE_URL" "$CURRENT_DIR"; then
-        ln -sfn "$PROJECT_ROOT" "$CURRENT_DIR"
-      fi
-    else
-      ln -sfn "$PROJECT_ROOT" "$CURRENT_DIR"
-    fi
-  fi
-fi
+install_spork_source
 
 if [ ! -f "$COMMAND_TARGET" ]; then
   echo "error: spork launcher not found: $COMMAND_TARGET" >&2

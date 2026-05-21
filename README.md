@@ -52,12 +52,10 @@ Spork currently supports these adapter names:
 
 Debian and Ubuntu installs keep the existing `apt install --simulate` preflight behavior.
 
-## Install From Source
+## Install
 
 ```bash
-git clone https://github.com/Enkialon/spork.git
-cd spork
-./scripts/install.sh
+curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh | sh
 export PATH="$HOME/.spork/shims:$PATH"
 spork checkup
 spork update
@@ -93,6 +91,19 @@ export PATH="$HOME/.spork/shims:$PATH"
 
 The installer checks for the base commands Spork needs, including `python3`, `git`, `sudo`, and the command set required by the detected package manager. It detects the package manager from `/etc/os-release` and available commands, then writes it to `config.json` as `packageManager`.
 
+By default, the installer downloads Spork from:
+
+```text
+https://github.com/Enkialon/spork.git
+```
+
+Override the source repository or checkout ref if you maintain a fork:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh \
+  | SPORK_REPO_URL=https://github.com/<owner>/spork.git SPORK_REF=<branch-or-tag> sh
+```
+
 The installer also adds the default bucket:
 
 ```text
@@ -102,9 +113,8 @@ main -> https://github.com/Enkialon/spork-bucket.git
 Override it during installation if you maintain your own bucket:
 
 ```bash
-SPORK_DEFAULT_BUCKET_NAME=main \
-SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git \
-./scripts/install.sh
+curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh \
+  | SPORK_DEFAULT_BUCKET_NAME=main SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git sh
 ```
 
 ## Quick Start
@@ -115,7 +125,7 @@ Run a local environment check without installing anything:
 ./scripts/spork checkup
 ```
 
-After installing from source:
+After installing:
 
 ```bash
 spork checkup

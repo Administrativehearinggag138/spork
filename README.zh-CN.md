@@ -52,12 +52,10 @@ Spork 只做一个轻量的第三方软件发现层：
 
 Debian 和 Ubuntu 环境会保留 `apt install --simulate` 预检查行为。
 
-## 从源码安装
+## 安装
 
 ```bash
-git clone https://github.com/Enkialon/spork.git
-cd spork
-./scripts/install.sh
+curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh | sh
 export PATH="$HOME/.spork/shims:$PATH"
 spork checkup
 spork update
@@ -93,6 +91,19 @@ export PATH="$HOME/.spork/shims:$PATH"
 
 安装器会检查 `python3`、`git`、`sudo` 以及当前包管理器所需的基础命令。它会根据 `/etc/os-release` 和系统可用命令检测包管理器，并把结果写入 `config.json` 的 `packageManager` 字段。
 
+默认情况下，安装器会从这里下载 Spork 源码：
+
+```text
+https://github.com/Enkialon/spork.git
+```
+
+如果要安装自己的 fork 或指定分支/tag：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh \
+  | SPORK_REPO_URL=https://github.com/<owner>/spork.git SPORK_REF=<branch-or-tag> sh
+```
+
 安装器也会添加默认 bucket：
 
 ```text
@@ -102,9 +113,8 @@ main -> https://github.com/Enkialon/spork-bucket.git
 如果要在安装时换成自己的 bucket：
 
 ```bash
-SPORK_DEFAULT_BUCKET_NAME=main \
-SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git \
-./scripts/install.sh
+curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh \
+  | SPORK_DEFAULT_BUCKET_NAME=main SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git sh
 ```
 
 ## 快速开始
@@ -115,7 +125,7 @@ SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git \
 ./scripts/spork checkup
 ```
 
-从源码安装后可以直接使用：
+安装后可以直接使用：
 
 ```bash
 spork checkup
