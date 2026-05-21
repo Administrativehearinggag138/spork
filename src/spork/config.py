@@ -21,6 +21,7 @@ DEFAULT_CONFIG = {
 }
 
 ENV_OVERRIDES = {
+    "SPORK_ARCH": ("arch", str),
     "SPORK_AUTO_UPDATE_BUCKETS": ("autoUpdateBuckets", "bool"),
     "SPORK_DOWNLOAD_TIMEOUT_SECONDS": ("downloadTimeoutSeconds", int),
     "SPORK_INSTALL_CONFIRM": ("installConfirm", "bool"),
