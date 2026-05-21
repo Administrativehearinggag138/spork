@@ -126,6 +126,7 @@ def build_parser() -> argparse.ArgumentParser:
     create_cmd.add_argument("--package")
     create_cmd.add_argument("--url")
     create_cmd.add_argument("--version")
+    create_cmd.add_argument("--arch")
     which_cmd = sub.add_parser("which", help="查找 PATH 中的可执行文件")
     which_cmd.add_argument("name")
 
@@ -263,7 +264,7 @@ def dispatch(args: argparse.Namespace) -> None:
     elif args.command == "cleanup":
         cleanup_command(yes=args.yes)
     elif args.command == "create":
-        create_command(args.app_id, Path(args.path), args.name, args.package, args.url, args.version)
+        create_command(args.app_id, Path(args.path), args.name, args.package, args.url, args.version, args.arch)
     elif args.command == "which":
         which_command(args.name)
     elif args.command in {"alias", "prefix", "reset", "shim", "virustotal"}:

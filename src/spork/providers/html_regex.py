@@ -3,10 +3,11 @@ import urllib.parse
 import urllib.request
 
 from spork.config import now_iso
+from spork.providers.architecture import selected_source
 
 
 def resolve(manifest: dict) -> dict:
-    source = manifest["source"]
+    source, arch = selected_source(manifest)
     with urllib.request.urlopen(source["pageUrl"], timeout=60) as response:
         html = response.read().decode("utf-8", errors="replace")
     url_match = re.search(source["urlRegex"], html)
@@ -27,7 +28,7 @@ def resolve(manifest: dict) -> dict:
         "description": manifest.get("description"),
         "package": manifest["package"],
         "version": version,
-        "arch": manifest.get("arch", "amd64"),
+        "arch": arch,
         "url": url,
         "sha256": manifest.get("sha256"),
         "homepage": manifest.get("homepage"),

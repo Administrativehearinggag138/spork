@@ -35,6 +35,7 @@ Spork 只做一个轻量的第三方软件发现层：
 - 通过系统包管理器适配器执行安装、升级、删除、清理和自动删除。
 - 支持只下载软件包，不安装。
 - 支持搜索、查看信息、查看主页、查看 manifest、查看依赖。
+- 支持根据 CPU 架构选择 bucket 中的不同构建。
 - 支持导出和导入 bucket、配置和 Spork 管理状态。
 - 支持 hold 和 unhold Spork 管理的应用升级状态。
 - 支持英文和中文输出。
@@ -156,7 +157,7 @@ spork checkup
 spork export --config
 spork import scoopfile.json --config
 spork cleanup
-spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
+spork create my-app ./bucket/my-app.json --arch arm64 --url https://example.com/my-app.deb
 ```
 
 `spork update` 会先用 `git pull --ff-only` 更新 Spork 自身，再更新 git bucket，最后从 `bucket/*.json` 重建本地应用索引。它不会执行 bucket 里的脚本。可以使用 `--no-self-update` 或 `--no-bucket-update` 跳过对应阶段。
@@ -174,6 +175,30 @@ bucket.json
 
 每个 `bucket/*.json` 都是 Spork 可以直接消费的元数据。仓库里的自动化可以更新这些文件，但客户端只会在拉取 bucket 后读取 JSON。
 
+单架构条目可以继续使用顶层的 `arch`、`url` 和 `sha256` 字段。多架构条目可以使用 `architectures`，`spork update` 会按当前配置架构选择对应构建：
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "my-app",
+  "name": "My App",
+  "package": "my-app",
+  "version": "1.0.0",
+  "homepage": "https://example.com",
+  "updatedAt": "2026-05-21T00:00:00Z",
+  "architectures": {
+    "amd64": {
+      "url": "https://example.com/my-app_1.0.0_amd64.deb",
+      "sha256": "..."
+    },
+    "arm64": {
+      "url": "https://example.com/my-app_1.0.0_arm64.deb",
+      "sha256": "..."
+    }
+  }
+}
+```
+
 ## 配置
 
 查看或修改包管理器：
@@ -184,6 +209,15 @@ spork config set packageManager apt
 spork config set packageManager dnf
 spork config set packageManager zypper
 spork config set packageManager pacman
+```
+
+查看或修改目标 CPU 架构：
+
+```bash
+spork config get arch
+spork config set arch amd64
+spork config set arch arm64
+SPORK_ARCH=riscv64 spork update
 ```
 
 选择输出语言：
@@ -200,6 +234,7 @@ spork config set language auto
 ```bash
 SPORK_LANG=en spork doctor
 SPORK_LANGUAGE=zh spork list
+SPORK_ARCH=arm64 spork update
 SPORK_DOWNLOAD_TIMEOUT_SECONDS=30 spork download <app-id>
 SPORK_PACKAGE_MANAGER=dnf spork doctor
 SPORK_HOME=/tmp/spork-dev spork doctor

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from . import cache
+from .arch import detect_arch, normalize_arch
 from .config import load_buckets, load_config, now_iso, save_buckets, save_config, write_json
 from .downloader import download
 from .errors import DebupError
@@ -135,16 +136,18 @@ def cleanup_command(yes: bool = False) -> None:
     print(t("done"))
 
 
-def create_command(app_id: str, path: Path, name: str | None, package: str | None, url: str | None, version: str | None) -> None:
+def create_command(app_id: str, path: Path, name: str | None, package: str | None, url: str | None, version: str | None, arch: str | None = None) -> None:
+    arch = normalize_arch(arch or detect_arch())
+    version = version or "1.0.0"
     manifest = {
         "schemaVersion": 1,
         "id": app_id,
         "name": name or app_id,
         "description": "",
         "package": package or app_id,
-        "version": version or "1.0.0",
-        "arch": "amd64",
-        "url": url or "https://example.com/app_1.0.0_amd64.deb",
+        "version": version,
+        "arch": arch,
+        "url": url or f"https://example.com/app_{version}_{arch}.deb",
         "sha256": None,
         "homepage": "",
         "updatedAt": now_iso(),

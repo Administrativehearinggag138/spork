@@ -35,6 +35,7 @@ This keeps Spork small and makes the boundary explicit.
 - Install, upgrade, remove, purge, and autoremove through a system package manager adapter.
 - Download-only mode for package files.
 - App search, info, homepage, manifest display, and dependency inspection.
+- CPU architecture selection for buckets that publish multiple builds.
 - Export and import of buckets, config, and Spork-managed state.
 - Hold and unhold support for Spork-managed app upgrade state.
 - English and Chinese output selection.
@@ -156,7 +157,7 @@ spork checkup
 spork export --config
 spork import scoopfile.json --config
 spork cleanup
-spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
+spork create my-app ./bucket/my-app.json --arch arm64 --url https://example.com/my-app.deb
 ```
 
 `spork update` updates Spork itself with `git pull --ff-only`, updates git buckets, then rebuilds the local app index from `bucket/*.json`. It does not execute bucket scripts. Use `--no-self-update` or `--no-bucket-update` to skip either phase.
@@ -174,6 +175,30 @@ bucket.json
 
 Each `bucket/*.json` file is directly consumable metadata. Automation may update these files in the bucket repository, but clients only read JSON after pulling the bucket.
 
+Single-architecture entries can use top-level `arch`, `url`, and `sha256` fields. Multi-architecture entries can use `architectures`; Spork selects the configured architecture during `spork update`:
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "my-app",
+  "name": "My App",
+  "package": "my-app",
+  "version": "1.0.0",
+  "homepage": "https://example.com",
+  "updatedAt": "2026-05-21T00:00:00Z",
+  "architectures": {
+    "amd64": {
+      "url": "https://example.com/my-app_1.0.0_amd64.deb",
+      "sha256": "..."
+    },
+    "arm64": {
+      "url": "https://example.com/my-app_1.0.0_arm64.deb",
+      "sha256": "..."
+    }
+  }
+}
+```
+
 ## Configuration
 
 Inspect or change the configured package manager:
@@ -184,6 +209,15 @@ spork config set packageManager apt
 spork config set packageManager dnf
 spork config set packageManager zypper
 spork config set packageManager pacman
+```
+
+Inspect or change the target CPU architecture:
+
+```bash
+spork config get arch
+spork config set arch amd64
+spork config set arch arm64
+SPORK_ARCH=riscv64 spork update
 ```
 
 Select output language:
@@ -200,6 +234,7 @@ Temporary environment overrides:
 ```bash
 SPORK_LANG=en spork doctor
 SPORK_LANGUAGE=zh spork list
+SPORK_ARCH=arm64 spork update
 SPORK_DOWNLOAD_TIMEOUT_SECONDS=30 spork download <app-id>
 SPORK_PACKAGE_MANAGER=dnf spork doctor
 SPORK_HOME=/tmp/spork-dev spork doctor

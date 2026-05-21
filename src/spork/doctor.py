@@ -3,6 +3,8 @@ import shutil
 import sys
 
 from . import paths
+from .arch import detect_arch
+from .config import load_config
 from .bucket import list_buckets
 from .package_managers import get_package_manager
 
@@ -15,8 +17,10 @@ def run_doctor() -> list[dict[str, str]]:
     paths.ensure_dirs()
     checks: list[dict[str, str]] = []
     checks.append({"item": "system", "status": "OK", "detail": platform.system()})
-    arch = platform.machine()
-    checks.append({"item": "arch amd64", "status": _ok(arch in {"x86_64", "amd64"}), "detail": arch})
+    config = load_config()
+    arch = detect_arch()
+    checks.append({"item": "system arch", "status": "OK", "detail": arch})
+    checks.append({"item": "configured arch", "status": "OK", "detail": str(config.get("arch"))})
     checks.append({"item": "python", "status": "OK", "detail": sys.version.split()[0]})
     manager = get_package_manager()
     checks.append({"item": "package manager", "status": "OK", "detail": manager.name})

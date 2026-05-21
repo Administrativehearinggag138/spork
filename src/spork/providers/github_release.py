@@ -3,9 +3,10 @@ import re
 import urllib.request
 
 from spork.config import now_iso
+from spork.providers.architecture import selected_source
 
 
-def _base_app(manifest: dict, version: str, url: str) -> dict:
+def _base_app(manifest: dict, version: str, url: str, arch: str) -> dict:
     return {
         "schemaVersion": 1,
         "id": manifest["id"],
@@ -13,7 +14,7 @@ def _base_app(manifest: dict, version: str, url: str) -> dict:
         "description": manifest.get("description"),
         "package": manifest["package"],
         "version": version,
-        "arch": manifest.get("arch", "amd64"),
+        "arch": arch,
         "url": url,
         "sha256": manifest.get("sha256"),
         "homepage": manifest.get("homepage"),
@@ -22,7 +23,7 @@ def _base_app(manifest: dict, version: str, url: str) -> dict:
 
 
 def resolve(manifest: dict) -> dict:
-    source = manifest["source"]
+    source, arch = selected_source(manifest)
     repo = source["repo"]
     request = urllib.request.Request(
         f"https://api.github.com/repos/{repo}/releases/latest",
@@ -38,5 +39,5 @@ def resolve(manifest: dict) -> dict:
     for asset in release.get("assets", []):
         name = asset.get("name", "")
         if asset_pattern.search(name):
-            return _base_app(manifest, version, asset["browser_download_url"])
+            return _base_app(manifest, version, asset["browser_download_url"], arch)
     raise ValueError(f"no matching release asset for {manifest['id']}")

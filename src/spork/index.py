@@ -9,11 +9,11 @@ from .manifest import read_app_dir
 from .output import warn
 
 
-def _bucket_apps(bucket: dict[str, Any]) -> list[dict[str, Any]]:
+def _bucket_apps(bucket: dict[str, Any], target_arch: str) -> list[dict[str, Any]]:
     bucket_path = Path(bucket["path"])
-    apps = read_app_dir(bucket_path / "bucket", bucket["name"])
+    apps = read_app_dir(bucket_path / "bucket", bucket["name"], target_arch)
     if not apps:
-        warn(f"bucket {bucket['name']} 没有 bucket/*.json manifest，已跳过。")
+        warn(f"bucket {bucket['name']} 没有适用于 {target_arch} 的 bucket/*.json manifest，已跳过。")
     return apps
 
 
@@ -25,7 +25,7 @@ def update_index(no_bucket_update: bool = False) -> dict[str, Any]:
     merged_by_id: dict[str, dict[str, Any]] = {}
     ordered_ids: list[str] = []
     for bucket in list_buckets():
-        apps = _bucket_apps(bucket)
+        apps = _bucket_apps(bucket, str(config.get("arch")))
         bucket_index = {"schemaVersion": 1, "updatedAt": now_iso(), "apps": apps}
         write_json(paths.index_dir() / f"{bucket['name']}.json", bucket_index)
         for app in apps:

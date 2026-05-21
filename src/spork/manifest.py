@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .arch import normalize_arch, select_architecture
 from .errors import IndexError
 
 
@@ -23,12 +24,17 @@ def validate_app(app: dict[str, Any], path: Path) -> None:
         raise IndexError(f"app manifest 缺少必要字段 {missing}：{path}")
 
 
-def read_app_dir(path: Path, bucket_name: str) -> list[dict[str, Any]]:
+def read_app_dir(path: Path, bucket_name: str, target_arch: str) -> list[dict[str, Any]]:
     apps: list[dict[str, Any]] = []
+    normalized_target = normalize_arch(target_arch)
     if not path.exists():
         return apps
     for file_path in sorted(path.glob("*.json")):
         app = read_json_file(file_path)
+        selected = select_architecture(app, normalized_target)
+        if selected is None:
+            continue
+        app, _selected_arch = selected
         app["bucket"] = bucket_name
         validate_app(app, file_path)
         apps.append(app)

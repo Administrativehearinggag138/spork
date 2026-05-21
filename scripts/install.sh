@@ -84,6 +84,21 @@ detect_package_manager() {
   printf 'apt'
 }
 
+detect_arch() {
+  machine=$(uname -m 2>/dev/null || printf unknown)
+  case "$machine" in
+    x86_64|amd64) printf 'amd64' ;;
+    i386|i686|x86) printf 'i386' ;;
+    aarch64|arm64) printf 'arm64' ;;
+    armv7l|armv7) printf 'armhf' ;;
+    armel) printf 'armel' ;;
+    riscv64) printf 'riscv64' ;;
+    ppc64le|ppc64el) printf 'ppc64el' ;;
+    s390x) printf 's390x' ;;
+    *) printf '%s' "$machine" ;;
+  esac
+}
+
 manager_commands() {
   case "$1" in
     apt|apt-get) printf '%s\n' "$1" sudo dpkg-query dpkg-deb dpkg apt-cache ;;
@@ -96,6 +111,7 @@ manager_commands() {
 
 LANGUAGE=$(detect_language)
 PACKAGE_MANAGER=$(detect_package_manager)
+ARCH="${SPORK_ARCH:-$(detect_arch)}"
 
 echo "Installing Spork from: $PROJECT_ROOT"
 echo "Detected package manager: $PACKAGE_MANAGER"
@@ -145,7 +161,7 @@ fi
 
 write_json_if_missing "$CONFIG_DIR/config.json" "{
   \"schemaVersion\": 1,
-  \"arch\": \"amd64\",
+  \"arch\": \"$ARCH\",
   \"autoUpdateBuckets\": true,
   \"downloadTimeoutSeconds\": 120,
   \"installConfirm\": true,
@@ -213,6 +229,7 @@ echo "  root:    $SPORK_ROOT"
 echo "  app:     $CURRENT_DIR"
 echo "  shim:    $COMMAND_LINK"
 echo "  config:  $CONFIG_DIR/config.json"
+echo "  arch:    $ARCH"
 if [ "$DEFAULT_BUCKET_ADDED" -eq 1 ]; then
   echo "  bucket:  $DEFAULT_BUCKET_NAME -> $DEFAULT_BUCKET_URL"
 fi

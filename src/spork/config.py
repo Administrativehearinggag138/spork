@@ -5,13 +5,14 @@ from pathlib import Path
 from typing import Any
 
 from . import paths
+from .arch import detect_arch, normalize_arch
 from .i18n import normalize_language
 from .package_managers import detect_package_manager
 
 
 DEFAULT_CONFIG = {
     "schemaVersion": 1,
-    "arch": "amd64",
+    "arch": detect_arch(),
     "autoUpdateBuckets": True,
     "downloadTimeoutSeconds": 120,
     "installConfirm": True,
@@ -62,6 +63,7 @@ def _apply_env_overrides(data: dict[str, Any]) -> dict[str, Any]:
         data["language"] = normalize_language(os.environ.get("LANG"))
     elif "language" in data:
         data["language"] = normalize_language(str(data["language"]))
+    data["arch"] = normalize_arch(str(data.get("arch") or detect_arch()))
     return data
 
 

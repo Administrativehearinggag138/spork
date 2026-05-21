@@ -4,10 +4,11 @@ from pathlib import Path
 
 from spork import dpkg
 from spork.config import now_iso
+from spork.providers.architecture import selected_source
 
 
 def resolve(manifest: dict) -> dict:
-    source = manifest["source"]
+    source, arch = selected_source(manifest)
     url = source["url"]
     version = source.get("version")
     if not version and source.get("versionStrategy") == "dpkg-deb-control":
@@ -25,7 +26,7 @@ def resolve(manifest: dict) -> dict:
         "description": manifest.get("description"),
         "package": manifest["package"],
         "version": version,
-        "arch": manifest.get("arch", "amd64"),
+        "arch": arch,
         "url": url,
         "sha256": manifest.get("sha256"),
         "homepage": manifest.get("homepage"),
