@@ -56,7 +56,6 @@ Debian and Ubuntu installs keep the existing `apt install --simulate` preflight 
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh | sh
-export PATH="$HOME/.spork/shims:$PATH"
 spork checkup
 spork update
 ```
@@ -81,17 +80,16 @@ The installer is user-scoped. It initializes this layout:
     downloads/
   state/
     installed.json
+
+~/.local/bin/
+  spork -> ~/.spork/apps/spork/current/scripts/spork
 ```
 
-If `spork` is not on your shell path, add the shim directory:
-
-```bash
-export PATH="$HOME/.spork/shims:$PATH"
-```
+The installer creates a user command link at `~/.local/bin/spork` when that path is available, and updates common shell profiles so new SSH shells can find `spork` from any directory.
 
 The installer checks for the base commands Spork needs, including `python3`, `git`, `sudo`, and the command set required by the detected package manager. It detects the package manager from `/etc/os-release` and available commands, then writes it to `config.json` as `packageManager`.
 
-By default, the installer downloads Spork from:
+By default, the installer downloads Spork from the network:
 
 ```text
 https://github.com/Enkialon/spork.git

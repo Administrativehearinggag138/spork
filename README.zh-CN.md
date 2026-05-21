@@ -56,7 +56,6 @@ Debian 和 Ubuntu 环境会保留 `apt install --simulate` 预检查行为。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh | sh
-export PATH="$HOME/.spork/shims:$PATH"
 spork checkup
 spork update
 ```
@@ -81,17 +80,16 @@ spork update
     downloads/
   state/
     installed.json
+
+~/.local/bin/
+  spork -> ~/.spork/apps/spork/current/scripts/spork
 ```
 
-如果 shell 找不到 `spork` 命令，请把 shim 目录加入 `PATH`：
-
-```bash
-export PATH="$HOME/.spork/shims:$PATH"
-```
+安装器会在可用时创建用户级命令链接 `~/.local/bin/spork`，并更新常见 shell profile，让新的 SSH 终端可以在任意目录直接运行 `spork`。
 
 安装器会检查 `python3`、`git`、`sudo` 以及当前包管理器所需的基础命令。它会根据 `/etc/os-release` 和系统可用命令检测包管理器，并把结果写入 `config.json` 的 `packageManager` 字段。
 
-默认情况下，安装器会从这里下载 Spork 源码：
+默认情况下，安装器会从网络下载 Spork 源码：
 
 ```text
 https://github.com/Enkialon/spork.git

@@ -12,14 +12,15 @@ STATE_DIR="$SPORK_ROOT/state"
 CACHE_DIR="$SPORK_ROOT/cache"
 APPS_DIR="$SPORK_ROOT/apps"
 SHIMS_DIR="$SPORK_ROOT/shims"
+USER_BIN_DIR="$HOME/.local/bin"
 SPORK_APP_DIR="$APPS_DIR/spork"
 CURRENT_DIR="$SPORK_APP_DIR/current"
 COMMAND_LINK="$SHIMS_DIR/spork"
+USER_COMMAND_LINK="$USER_BIN_DIR/spork"
 COMMAND_TARGET="$CURRENT_DIR/scripts/spork"
 DEFAULT_BUCKET_NAME="${SPORK_DEFAULT_BUCKET_NAME:-main}"
 DEFAULT_BUCKET_URL="${SPORK_DEFAULT_BUCKET_URL:-https://github.com/Enkialon/spork-bucket.git}"
 DEFAULT_BUCKET_DIR="$BUCKETS_DIR/$DEFAULT_BUCKET_NAME"
-LOCAL_PROJECT_ROOT=""
 
 need_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -45,24 +46,6 @@ detect_language() {
     zh*|ZH*) printf 'zh' ;;
     *) printf 'en' ;;
   esac
-}
-
-detect_local_project_root() {
-  script_path=$0
-  case "$script_path" in
-    */*) ;;
-    *) return 0 ;;
-  esac
-
-  if [ ! -f "$script_path" ]; then
-    return 0
-  fi
-
-  script_dir=$(CDPATH= cd -- "$(dirname -- "$script_path")" && pwd)
-  project_root=$(CDPATH= cd -- "$script_dir/.." && pwd)
-  if [ -f "$project_root/src/spork/cli.py" ] && [ -f "$project_root/scripts/spork" ]; then
-    printf '%s' "$project_root"
-  fi
 }
 
 normalize_package_manager() {
@@ -135,41 +118,67 @@ install_spork_source() {
     return 0
   fi
 
-  source_url=$SPORK_REPO_URL
-  if [ -n "$LOCAL_PROJECT_ROOT" ]; then
-    local_origin=$(git -C "$LOCAL_PROJECT_ROOT" config --get remote.origin.url || true)
-    if [ -n "$local_origin" ]; then
-      source_url=$local_origin
-    else
-      source_url=$LOCAL_PROJECT_ROOT
-    fi
-  fi
-
   if [ -e "$CURRENT_DIR" ]; then
     echo "error: $CURRENT_DIR already exists but $COMMAND_TARGET is missing." >&2
     echo "Remove it or set SPORK_HOME to a different install root, then run the installer again." >&2
     exit 1
   fi
 
-  echo "Downloading Spork source from: $source_url"
-  if ! git clone "$source_url" "$CURRENT_DIR"; then
-    if [ -n "$LOCAL_PROJECT_ROOT" ] && [ "$source_url" != "$LOCAL_PROJECT_ROOT" ]; then
-      echo "warning: failed to clone $source_url; falling back to local checkout: $LOCAL_PROJECT_ROOT" >&2
-      git clone "$LOCAL_PROJECT_ROOT" "$CURRENT_DIR"
-    else
-      exit 1
-    fi
-  fi
+  echo "Downloading Spork source from: $SPORK_REPO_URL"
+  git clone "$SPORK_REPO_URL" "$CURRENT_DIR"
 
   if [ -n "$SPORK_REF" ]; then
     git -C "$CURRENT_DIR" checkout "$SPORK_REF"
   fi
 }
 
+append_path_profile() {
+  profile_file=$1
+
+  if [ ! -e "$profile_file" ]; then
+    : > "$profile_file" || return 1
+  fi
+
+  if grep -F "$SHIMS_DIR" "$profile_file" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  {
+    printf '\n# Spork command shims\n'
+    printf 'case ":$PATH:" in\n'
+    printf '  *":%s:"*) ;;\n' "$SHIMS_DIR"
+    printf '  *) export PATH="%s:$PATH" ;;\n' "$SHIMS_DIR"
+    printf 'esac\n'
+  } >> "$profile_file"
+  PATH_PROFILE_UPDATED=1
+}
+
+ensure_shell_path() {
+  PATH_PROFILE_UPDATED=0
+  failed=0
+
+  for profile_file in "$HOME/.profile" "$HOME/.bashrc" "$HOME/.zshrc"; do
+    if [ "$profile_file" = "$HOME/.profile" ] || [ -e "$profile_file" ]; then
+      if append_path_profile "$profile_file"; then
+        :
+      else
+        failed=1
+        echo "warning: failed to update shell profile: $profile_file" >&2
+      fi
+    fi
+  done
+
+  if [ "$PATH_PROFILE_UPDATED" -eq 1 ]; then
+    echo "Updated shell profiles for Spork command lookup."
+  fi
+  if [ "$failed" -eq 1 ]; then
+    echo "warning: add $SHIMS_DIR to PATH manually if spork is not found." >&2
+  fi
+}
+
 LANGUAGE=$(detect_language)
 PACKAGE_MANAGER=$(detect_package_manager)
 ARCH=$(detect_arch)
-LOCAL_PROJECT_ROOT=$(detect_local_project_root)
 
 echo "Installing Spork into: $SPORK_ROOT"
 echo "Detected package manager: $PACKAGE_MANAGER"
@@ -194,7 +203,8 @@ mkdir -p \
   "$CACHE_DIR/index" \
   "$CACHE_DIR/downloads" \
   "$SPORK_APP_DIR" \
-  "$SHIMS_DIR"
+  "$SHIMS_DIR" \
+  "$USER_BIN_DIR"
 
 install_spork_source
 
@@ -266,12 +276,20 @@ write_json_if_missing "$STATE_DIR/installed.json" '{
 }'
 
 ln -sfn "$COMMAND_TARGET" "$COMMAND_LINK"
+if [ ! -e "$USER_COMMAND_LINK" ] || [ -L "$USER_COMMAND_LINK" ]; then
+  ln -sfn "$COMMAND_TARGET" "$USER_COMMAND_LINK"
+else
+  echo "warning: not replacing existing command: $USER_COMMAND_LINK" >&2
+fi
+
+ensure_shell_path
 
 echo
 echo "Spork installed:"
 echo "  root:    $SPORK_ROOT"
 echo "  app:     $CURRENT_DIR"
 echo "  shim:    $COMMAND_LINK"
+echo "  command: $USER_COMMAND_LINK"
 echo "  config:  $CONFIG_DIR/config.json"
 echo "  arch:    $ARCH"
 if [ "$DEFAULT_BUCKET_ADDED" -eq 1 ]; then
@@ -283,11 +301,10 @@ echo "Managed applications are not installed under $SPORK_ROOT."
 echo "Install, remove, and purge still go through the configured package manager: $PACKAGE_MANAGER."
 
 case ":$PATH:" in
-  *":$SHIMS_DIR:"*) ;;
+  *":$SHIMS_DIR:"*|*":$USER_BIN_DIR:"*) ;;
   *)
     echo
-    echo "Add this to your shell profile if spork is not found:"
-    echo "  export PATH=\"$SHIMS_DIR:\$PATH\""
+    echo "Open a new shell if spork is not found in this one."
     ;;
 esac
 
