@@ -14,6 +14,9 @@ SPORK_APP_DIR="$APPS_DIR/spork"
 CURRENT_DIR="$SPORK_APP_DIR/current"
 COMMAND_LINK="$SHIMS_DIR/spork"
 COMMAND_TARGET="$CURRENT_DIR/scripts/spork"
+DEFAULT_BUCKET_NAME="${SPORK_DEFAULT_BUCKET_NAME:-main}"
+DEFAULT_BUCKET_URL="${SPORK_DEFAULT_BUCKET_URL:-https://github.com/Enkialon/spork-bucket.git}"
+DEFAULT_BUCKET_DIR="$BUCKETS_DIR/$DEFAULT_BUCKET_NAME"
 
 need_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -28,6 +31,10 @@ write_json_if_missing() {
   if [ ! -f "$file" ]; then
     printf '%s\n' "$content" > "$file"
   fi
+}
+
+now_iso() {
+  date -u '+%Y-%m-%dT%H:%M:%SZ'
 }
 
 detect_language() {
@@ -146,15 +153,52 @@ write_json_if_missing "$CONFIG_DIR/config.json" "{
   \"packageManager\": \"$PACKAGE_MANAGER\"
 }"
 
-write_json_if_missing "$CONFIG_DIR/buckets.json" '{
+DEFAULT_BUCKET_ADDED=0
+if [ ! -f "$CONFIG_DIR/buckets.json" ]; then
+  if [ -d "$DEFAULT_BUCKET_DIR/.git" ] || git clone "$DEFAULT_BUCKET_URL" "$DEFAULT_BUCKET_DIR"; then
+    DEFAULT_BUCKET_ADDED=1
+    ADDED_AT=$(now_iso)
+    write_json_if_missing "$CONFIG_DIR/buckets.json" "{
+  \"schemaVersion\": 1,
+  \"buckets\": [
+    {
+      \"name\": \"$DEFAULT_BUCKET_NAME\",
+      \"type\": \"git\",
+      \"source\": \"$DEFAULT_BUCKET_URL\",
+      \"path\": \"$DEFAULT_BUCKET_DIR\",
+      \"trusted\": true,
+      \"addedAt\": \"$ADDED_AT\"
+    }
+  ]
+}"
+  else
+    echo "warning: failed to clone default bucket: $DEFAULT_BUCKET_URL" >&2
+    echo "warning: add it later with: spork bucket add $DEFAULT_BUCKET_NAME $DEFAULT_BUCKET_URL" >&2
+    write_json_if_missing "$CONFIG_DIR/buckets.json" '{
   "schemaVersion": 1,
   "buckets": []
 }'
+  fi
+fi
 
-write_json_if_missing "$CONFIG_DIR/trusted-buckets.json" '{
+if [ ! -f "$CONFIG_DIR/trusted-buckets.json" ] && [ "$DEFAULT_BUCKET_ADDED" -eq 1 ]; then
+  TRUSTED_AT=$(now_iso)
+  write_json_if_missing "$CONFIG_DIR/trusted-buckets.json" "{
+  \"schemaVersion\": 1,
+  \"trusted\": [
+    {
+      \"name\": \"$DEFAULT_BUCKET_NAME\",
+      \"source\": \"$DEFAULT_BUCKET_URL\",
+      \"trustedAt\": \"$TRUSTED_AT\"
+    }
+  ]
+}"
+else
+  write_json_if_missing "$CONFIG_DIR/trusted-buckets.json" '{
   "schemaVersion": 1,
   "trusted": []
 }'
+fi
 
 write_json_if_missing "$STATE_DIR/installed.json" '{
   "schemaVersion": 1,
@@ -169,6 +213,9 @@ echo "  root:    $SPORK_ROOT"
 echo "  app:     $CURRENT_DIR"
 echo "  shim:    $COMMAND_LINK"
 echo "  config:  $CONFIG_DIR/config.json"
+if [ "$DEFAULT_BUCKET_ADDED" -eq 1 ]; then
+  echo "  bucket:  $DEFAULT_BUCKET_NAME -> $DEFAULT_BUCKET_URL"
+fi
 echo "  cache:   $CACHE_DIR"
 echo
 echo "Managed applications are not installed under $SPORK_ROOT."
@@ -187,3 +234,4 @@ echo
 "$COMMAND_LINK" --version
 echo "Run:"
 echo "  spork doctor"
+echo "  spork update"

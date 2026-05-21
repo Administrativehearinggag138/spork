@@ -54,8 +54,12 @@ Debian 和 Ubuntu 环境会保留 `apt install --simulate` 预检查行为。
 ## 从源码安装
 
 ```bash
+git clone https://github.com/Enkialon/spork.git
+cd spork
 ./scripts/install.sh
-spork --help
+export PATH="$HOME/.spork/shims:$PATH"
+spork doctor
+spork update
 ```
 
 安装器是用户级的，会初始化以下目录：
@@ -72,6 +76,7 @@ spork --help
     buckets.json
     trusted-buckets.json
   buckets/
+    main/             # 默认 bucket checkout
   cache/
     index/
     downloads/
@@ -87,6 +92,20 @@ export PATH="$HOME/.spork/shims:$PATH"
 
 安装器会检查 `python3`、`git`、`sudo` 以及当前包管理器所需的基础命令。它会根据 `/etc/os-release` 和系统可用命令检测包管理器，并把结果写入 `config.json` 的 `packageManager` 字段。
 
+安装器也会添加默认 bucket：
+
+```text
+main -> https://github.com/Enkialon/spork-bucket.git
+```
+
+如果要在安装时换成自己的 bucket：
+
+```bash
+SPORK_DEFAULT_BUCKET_NAME=main \
+SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git \
+./scripts/install.sh
+```
+
 ## 快速开始
 
 先做一次不会安装软件的本地环境检查：
@@ -99,7 +118,6 @@ export PATH="$HOME/.spork/shims:$PATH"
 
 ```bash
 spork doctor
-spork bucket add main <bucket-url>
 spork update
 spork search <query>
 spork info <app-id>
@@ -108,8 +126,8 @@ spork info <app-id>
 ## 常用命令
 
 ```bash
-spork bucket add main <bucket-url>
 spork bucket list
+spork bucket add extras <bucket-url>
 spork bucket update
 spork update
 

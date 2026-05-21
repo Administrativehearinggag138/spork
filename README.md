@@ -54,8 +54,12 @@ Debian and Ubuntu installs keep the existing `apt install --simulate` preflight 
 ## Install From Source
 
 ```bash
+git clone https://github.com/Enkialon/spork.git
+cd spork
 ./scripts/install.sh
-spork --help
+export PATH="$HOME/.spork/shims:$PATH"
+spork doctor
+spork update
 ```
 
 The installer is user-scoped. It initializes this layout:
@@ -72,6 +76,7 @@ The installer is user-scoped. It initializes this layout:
     buckets.json
     trusted-buckets.json
   buckets/
+    main/             # default bucket checkout
   cache/
     index/
     downloads/
@@ -87,6 +92,20 @@ export PATH="$HOME/.spork/shims:$PATH"
 
 The installer checks for the base commands Spork needs, including `python3`, `git`, `sudo`, and the command set required by the detected package manager. It detects the package manager from `/etc/os-release` and available commands, then writes it to `config.json` as `packageManager`.
 
+The installer also adds the default bucket:
+
+```text
+main -> https://github.com/Enkialon/spork-bucket.git
+```
+
+Override it during installation if you maintain your own bucket:
+
+```bash
+SPORK_DEFAULT_BUCKET_NAME=main \
+SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git \
+./scripts/install.sh
+```
+
 ## Quick Start
 
 Run a local environment check without installing anything:
@@ -99,7 +118,6 @@ After installing from source:
 
 ```bash
 spork doctor
-spork bucket add main <bucket-url>
 spork update
 spork search <query>
 spork info <app-id>
@@ -108,8 +126,8 @@ spork info <app-id>
 ## Common Commands
 
 ```bash
-spork bucket add main <bucket-url>
 spork bucket list
+spork bucket add extras <bucket-url>
 spork bucket update
 spork update
 
