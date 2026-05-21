@@ -24,7 +24,7 @@ Instead, Spork provides a lightweight third-party discovery layer:
 
 - Buckets describe software entries outside the system repository.
 - Manifests point to package files, metadata, homepages, and versions.
-- The configured package manager handles install, upgrade, removal, dependency resolution, and system state.
+- The configured package manager handles install, update, uninstall, dependency resolution, and system state.
 
 This keeps Spork small and makes the boundary explicit.
 
@@ -32,7 +32,7 @@ This keeps Spork small and makes the boundary explicit.
 
 - Scoop-style buckets and app manifests.
 - Local app index built from configured buckets.
-- Install, upgrade, uninstall, purge, and autoremove through a system package manager adapter.
+- Install, update, uninstall, purge, and autoremove through a system package manager adapter.
 - Download-only mode for package files.
 - App search, info, homepage, manifest display, and dependency inspection.
 - CPU architecture filtering for buckets that publish multiple builds.
@@ -59,7 +59,7 @@ git clone https://github.com/Enkialon/spork.git
 cd spork
 ./scripts/install.sh
 export PATH="$HOME/.spork/shims:$PATH"
-spork doctor
+spork checkup
 spork update
 ```
 
@@ -112,13 +112,13 @@ SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git \
 Run a local environment check without installing anything:
 
 ```bash
-./scripts/spork doctor
+./scripts/spork checkup
 ```
 
 After installing from source:
 
 ```bash
-spork doctor
+spork checkup
 spork update
 spork search <query>
 spork info <app-id>
@@ -129,6 +129,7 @@ spork info <app-id>
 ```bash
 spork bucket list
 spork bucket add extras <bucket-url>
+spork bucket rm extras
 spork bucket update
 spork update
 
@@ -142,13 +143,13 @@ spork depends <app-id>
 
 spork download <app-id>
 spork install <app-id>
-spork upgrade <app-id>
+spork update <app-id>
+spork status
 spork uninstall <app-id>
 spork purge <app-id>
 spork autoremove
-spork check
 spork cache clean
-spork doctor
+spork checkup
 spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
 ```
 
@@ -167,7 +168,7 @@ bucket.json
 
 Each `bucket/*.json` file is directly consumable metadata. Automation may update these files in the bucket repository, but clients only read JSON after pulling the bucket.
 
-Single-architecture entries can use top-level `arch`, `url`, and `sha256` fields. Multi-architecture entries can use `architectures`; Spork uses the CPU architecture detected during installation and skips unsupported apps:
+Single-architecture entries can use top-level `arch`, `url`, and `sha256` fields. Multi-architecture entries can use `architectures`; Spork uses the CPU architecture detected during installation and skips unsupported apps. Common aliases are normalized to Debian-style names such as `amd64`, `arm64`, `mips64el`, and `loongarch64`:
 
 ```json
 {
@@ -206,7 +207,7 @@ spork config set packageManager pacman
 Select output language:
 
 ```bash
-spork --lang en doctor
+spork --lang en checkup
 spork config set language zh
 spork config set language en
 spork config set language auto
@@ -215,11 +216,11 @@ spork config set language auto
 Temporary environment overrides:
 
 ```bash
-SPORK_LANG=en spork doctor
+SPORK_LANG=en spork checkup
 SPORK_LANGUAGE=zh spork list
 SPORK_DOWNLOAD_TIMEOUT_SECONDS=30 spork download <app-id>
-SPORK_PACKAGE_MANAGER=dnf spork doctor
-SPORK_HOME=/tmp/spork-dev spork doctor
+SPORK_PACKAGE_MANAGER=dnf spork checkup
+SPORK_HOME=/tmp/spork-dev spork checkup
 ```
 
 ## Source Layout

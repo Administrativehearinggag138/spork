@@ -250,5 +250,5 @@ esac
 echo
 "$COMMAND_LINK" --version
 echo "Run:"
-echo "  spork doctor"
+echo "  spork checkup"
 echo "  spork update"

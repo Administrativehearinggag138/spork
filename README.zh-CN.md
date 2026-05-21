@@ -59,7 +59,7 @@ git clone https://github.com/Enkialon/spork.git
 cd spork
 ./scripts/install.sh
 export PATH="$HOME/.spork/shims:$PATH"
-spork doctor
+spork checkup
 spork update
 ```
 
@@ -112,13 +112,13 @@ SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git \
 先做一次不会安装软件的本地环境检查：
 
 ```bash
-./scripts/spork doctor
+./scripts/spork checkup
 ```
 
 从源码安装后可以直接使用：
 
 ```bash
-spork doctor
+spork checkup
 spork update
 spork search <query>
 spork info <app-id>
@@ -129,6 +129,7 @@ spork info <app-id>
 ```bash
 spork bucket list
 spork bucket add extras <bucket-url>
+spork bucket rm extras
 spork bucket update
 spork update
 
@@ -142,13 +143,13 @@ spork depends <app-id>
 
 spork download <app-id>
 spork install <app-id>
-spork upgrade <app-id>
+spork update <app-id>
+spork status
 spork uninstall <app-id>
 spork purge <app-id>
 spork autoremove
-spork check
 spork cache clean
-spork doctor
+spork checkup
 spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
 ```
 
@@ -167,7 +168,7 @@ bucket.json
 
 每个 `bucket/*.json` 都是 Spork 可以直接消费的元数据。仓库里的自动化可以更新这些文件，但客户端只会在拉取 bucket 后读取 JSON。
 
-单架构条目可以继续使用顶层的 `arch`、`url` 和 `sha256` 字段。多架构条目可以使用 `architectures`，`spork update` 会按安装时检测到的 CPU 架构选择对应构建，不支持该架构的应用会被跳过：
+单架构条目可以继续使用顶层的 `arch`、`url` 和 `sha256` 字段。多架构条目可以使用 `architectures`，`spork update` 会按安装时检测到的 CPU 架构选择对应构建，不支持该架构的应用会被跳过。常见别名会规范化成 Debian 风格名称，例如 `amd64`、`arm64`、`mips64el`、`loongarch64`：
 
 ```json
 {
@@ -206,7 +207,7 @@ spork config set packageManager pacman
 选择输出语言：
 
 ```bash
-spork --lang en doctor
+spork --lang en checkup
 spork config set language zh
 spork config set language en
 spork config set language auto
@@ -215,11 +216,11 @@ spork config set language auto
 临时环境变量覆盖：
 
 ```bash
-SPORK_LANG=en spork doctor
+SPORK_LANG=en spork checkup
 SPORK_LANGUAGE=zh spork list
 SPORK_DOWNLOAD_TIMEOUT_SECONDS=30 spork download <app-id>
-SPORK_PACKAGE_MANAGER=dnf spork doctor
-SPORK_HOME=/tmp/spork-dev spork doctor
+SPORK_PACKAGE_MANAGER=dnf spork checkup
+SPORK_HOME=/tmp/spork-dev spork checkup
 ```
 
 ## 源码结构

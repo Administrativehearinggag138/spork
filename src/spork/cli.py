@@ -52,15 +52,18 @@ def build_parser() -> argparse.ArgumentParser:
     bucket_add.add_argument("-y", "--yes", action="store_true")
     bucket_list = bucket_sub.add_parser("list")
     _add_json(bucket_list)
-    bucket_remove = bucket_sub.add_parser("remove")
-    bucket_remove.add_argument("name")
-    bucket_remove.add_argument("--delete-files", action="store_true")
+    bucket_rm = bucket_sub.add_parser("rm")
+    bucket_rm.add_argument("name")
+    bucket_rm.add_argument("--delete-files", action="store_true")
     bucket_update = bucket_sub.add_parser("update")
     bucket_update.add_argument("name", nargs="?")
 
-    update = sub.add_parser("update", help="更新 Spork、自身 bucket 和本地索引")
+    update = sub.add_parser("update", help="更新 Spork、自身 bucket、本地索引或应用")
+    update.add_argument("app_id", nargs="?")
     update.add_argument("--no-bucket-update", action="store_true")
     update.add_argument("--no-self-update", action="store_true")
+    update.add_argument("-y", "--yes", action="store_true")
+    update.add_argument("--stop-on-error", action="store_true")
 
     list_cmd = sub.add_parser("list", help="列出应用")
     list_cmd.add_argument("--installed", action="store_true", help=f"只列出 {BRAND_NAME} 记录的已安装应用")
@@ -71,8 +74,8 @@ def build_parser() -> argparse.ArgumentParser:
     info = sub.add_parser("info", help="显示应用信息")
     info.add_argument("app_id")
     _add_json(info)
-    check_cmd = sub.add_parser("check", help="检查可升级软件")
-    _add_json(check_cmd)
+    status_cmd = sub.add_parser("status", help="检查可升级软件")
+    _add_json(status_cmd)
 
     config_cmd = sub.add_parser("config", help="读写配置")
     config_sub = config_cmd.add_subparsers(dest="config_command", required=True)
@@ -108,11 +111,6 @@ def build_parser() -> argparse.ArgumentParser:
     install_cmd.add_argument("app_id")
     install_cmd.add_argument("-y", "--yes", action="store_true")
 
-    upgrade_cmd = sub.add_parser("upgrade", help="升级应用")
-    upgrade_cmd.add_argument("app_id", nargs="?")
-    upgrade_cmd.add_argument("-y", "--yes", action="store_true")
-    upgrade_cmd.add_argument("--stop-on-error", action="store_true")
-
     uninstall_cmd = sub.add_parser("uninstall", help="卸载应用")
     uninstall_cmd.add_argument("app_id")
     uninstall_cmd.add_argument("-y", "--yes", action="store_true")
@@ -129,8 +127,8 @@ def build_parser() -> argparse.ArgumentParser:
     cache_clean = cache_sub.add_parser("clean")
     cache_clean.add_argument("-y", "--yes", action="store_true")
 
-    doctor_cmd = sub.add_parser("doctor", help="检查环境")
-    _add_json(doctor_cmd)
+    checkup_cmd = sub.add_parser("checkup", help="检查环境")
+    _add_json(checkup_cmd)
     return parser
 
 
@@ -144,7 +142,7 @@ def cmd_bucket(args: argparse.Namespace) -> None:
             print_json(rows)
         else:
             table(rows, [("name", "NAME"), ("type", "TYPE"), ("source", "SOURCE"), ("trusted", "TRUSTED")])
-    elif args.bucket_command == "remove":
+    elif args.bucket_command == "rm":
         remove_bucket(args.name, delete_files=args.delete_files)
         print(f"已删除 bucket：{args.name}")
     elif args.bucket_command == "update":
@@ -178,6 +176,9 @@ def dispatch(args: argparse.Namespace) -> None:
     if args.command == "bucket":
         cmd_bucket(args)
     elif args.command == "update":
+        if args.app_id:
+            upgrade(None if args.app_id == "*" else args.app_id, yes=args.yes, stop_on_error=args.stop_on_error)
+            return
         if not args.no_self_update:
             update_self()
         merged = update_index(no_bucket_update=args.no_bucket_update)
@@ -196,7 +197,7 @@ def dispatch(args: argparse.Namespace) -> None:
             table(rows, [("id", "ID"), ("name", "NAME"), ("package", "PACKAGE"), ("version", "VERSION"), ("bucket", "BUCKET")])
     elif args.command == "info":
         cmd_info(args)
-    elif args.command == "check":
+    elif args.command == "status":
         rows = check()
         if args.json:
             print_json(rows)
@@ -204,8 +205,6 @@ def dispatch(args: argparse.Namespace) -> None:
             table(rows, [("id", "ID"), ("package", "PACKAGE"), ("installed", "INSTALLED"), ("latest", "LATEST"), ("bucket", "BUCKET")])
     elif args.command == "install":
         install(args.app_id, yes=args.yes)
-    elif args.command == "upgrade":
-        upgrade(args.app_id, yes=args.yes, stop_on_error=args.stop_on_error)
     elif args.command in {"uninstall", "purge"}:
         remove(args.app_id, yes=args.yes, package=args.package, purge=args.command == "purge")
     elif args.command == "autoremove":
@@ -213,7 +212,7 @@ def dispatch(args: argparse.Namespace) -> None:
     elif args.command == "cache":
         if args.cache_command == "clean":
             cmd_cache_clean(args)
-    elif args.command == "doctor":
+    elif args.command == "checkup":
         rows = run_doctor()
         if args.json:
             print_json(rows)

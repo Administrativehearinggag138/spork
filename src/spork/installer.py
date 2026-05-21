@@ -32,7 +32,7 @@ def install(app_id: str, yes: bool = False) -> None:
         if not dpkg.compare_versions(installed, "lt", app["version"]):
             print(f"已安装 {app_id}，当前版本 {installed} 不低于索引版本 {app['version']}。")
             return
-        print(f"已安装旧版本 {installed}，可执行 spork upgrade {app_id}。")
+        print(f"已安装旧版本 {installed}，可执行 spork update {app_id}。")
         return
     show_install_plan(app, "install")
     if not app.get("sha256"):
