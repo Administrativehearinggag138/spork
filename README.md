@@ -35,7 +35,7 @@ This keeps Spork small and makes the boundary explicit.
 - Install, upgrade, remove, purge, and autoremove through a system package manager adapter.
 - Download-only mode for package files.
 - App search, info, homepage, manifest display, and dependency inspection.
-- Automatic CPU architecture filtering for buckets that publish multiple builds.
+- CPU architecture filtering for buckets that publish multiple builds.
 - Export and import of buckets, config, and Spork-managed state.
 - Hold and unhold support for Spork-managed app upgrade state.
 - English and Chinese output selection.
@@ -175,7 +175,7 @@ bucket.json
 
 Each `bucket/*.json` file is directly consumable metadata. Automation may update these files in the bucket repository, but clients only read JSON after pulling the bucket.
 
-Single-architecture entries can use top-level `arch`, `url`, and `sha256` fields. Multi-architecture entries can use `architectures`; Spork detects the current CPU architecture during `spork update` and skips unsupported apps:
+Single-architecture entries can use top-level `arch`, `url`, and `sha256` fields. Multi-architecture entries can use `architectures`; Spork uses the CPU architecture detected during installation and skips unsupported apps:
 
 ```json
 {

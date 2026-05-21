@@ -54,6 +54,8 @@ def config_command(args: Any) -> None:
         value = data[args.key]
         print_json({args.key: value}) if args.json else print(value)
     elif args.config_command == "set":
+        if args.key == "arch":
+            raise DebupError("arch 是安装时检测到的 CPU 架构，不支持通过 config set 修改。")
         data[args.key] = parse_config_value(args.value)
         save_config(data)
         print(t("config_updated", key=args.key, value=data[args.key]))

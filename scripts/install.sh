@@ -161,6 +161,7 @@ fi
 
 write_json_if_missing "$CONFIG_DIR/config.json" "{
   \"schemaVersion\": 1,
+  \"arch\": \"$ARCH\",
   \"autoUpdateBuckets\": true,
   \"downloadTimeoutSeconds\": 120,
   \"installConfirm\": true,
