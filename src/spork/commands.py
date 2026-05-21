@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from . import cache
-from .config import load_buckets, load_config, save_buckets, save_config, write_json
+from .config import load_buckets, load_config, now_iso, save_buckets, save_config, write_json
 from .downloader import download
 from .errors import DebupError
 from .i18n import t
@@ -142,14 +142,12 @@ def create_command(app_id: str, path: Path, name: str | None, package: str | Non
         "name": name or app_id,
         "description": "",
         "package": package or app_id,
+        "version": version or "1.0.0",
         "arch": "amd64",
+        "url": url or "https://example.com/app_1.0.0_amd64.deb",
+        "sha256": None,
         "homepage": "",
-        "source": {
-            "type": "fixed-url",
-            "url": url or "https://example.com/app_1.0.0_amd64.deb",
-            "version": version or "1.0.0",
-        },
-        "install": {"type": "deb"},
+        "updatedAt": now_iso(),
     }
     write_json(path, manifest)
     print(path)

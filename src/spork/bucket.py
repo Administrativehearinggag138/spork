@@ -6,7 +6,6 @@ from typing import Any
 from . import paths
 from .config import load_buckets, load_trusted_buckets, now_iso, save_buckets, save_trusted_buckets
 from .errors import BucketError
-from .output import confirm, warn
 
 
 def _is_git_source(source: str) -> bool:
@@ -62,26 +61,17 @@ def add_bucket(name: str, source: str, yes: bool = False) -> dict[str, Any]:
 
     _validate_bucket_path(bucket_path)
 
-    has_scripts = (bucket_path / "tools").exists() or (bucket_path / "scripts").exists()
-    trusted = True
-    if has_scripts:
-        warn("该 bucket 包含可执行脚本。本地解析索引时这些脚本可能会被执行。")
-        trusted = confirm("确认信任该来源吗？", yes=yes)
-        if not trusted:
-            raise BucketError("用户未信任该 bucket，已取消添加。")
-
     entry = {
         "name": name,
         "type": bucket_type,
         "source": source,
         "path": str(bucket_path),
-        "trusted": trusted,
+        "trusted": True,
         "addedAt": now_iso(),
     }
     data.setdefault("buckets", []).append(entry)
     save_buckets(data)
-    if trusted:
-        _record_trust(name, source)
+    _record_trust(name, source)
     return entry
 
 

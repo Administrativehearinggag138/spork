@@ -65,7 +65,6 @@ def build_parser() -> argparse.ArgumentParser:
     bucket_update.add_argument("name", nargs="?")
 
     update = sub.add_parser("update", help="更新 Spork、自身 bucket 和本地索引")
-    update.add_argument("--local-resolve", action="store_true")
     update.add_argument("--no-bucket-update", action="store_true")
     update.add_argument("--no-self-update", action="store_true")
 
@@ -206,7 +205,7 @@ def dispatch(args: argparse.Namespace) -> None:
     elif args.command == "update":
         if not args.no_self_update:
             update_self()
-        merged = update_index(local_resolve=args.local_resolve, no_bucket_update=args.no_bucket_update)
+        merged = update_index(no_bucket_update=args.no_bucket_update)
         print(f"索引更新完成：{len(merged.get('apps', []))} 个应用。")
     elif args.command == "list":
         rows = list_installed() if args.installed else all_apps()

@@ -140,8 +140,6 @@ write_json_if_missing "$CONFIG_DIR/config.json" "{
   \"schemaVersion\": 1,
   \"arch\": \"amd64\",
   \"autoUpdateBuckets\": true,
-  \"preferGeneratedIndex\": true,
-  \"allowLocalResolve\": false,
   \"downloadTimeoutSeconds\": 120,
   \"installConfirm\": true,
   \"language\": \"$LANGUAGE\",

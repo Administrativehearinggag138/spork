@@ -136,10 +136,23 @@ spork checkup
 spork export --config
 spork import scoopfile.json --config
 spork cleanup
-spork create my-app ./my-app.json --url https://example.com/my-app.deb
+spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
 ```
 
-`spork update` 会先用 `git pull --ff-only` 更新 Spork 自身，再更新 git bucket，最后重建本地应用索引。可以使用 `--no-self-update` 或 `--no-bucket-update` 跳过对应阶段。
+`spork update` 会先用 `git pull --ff-only` 更新 Spork 自身，再更新 git bucket，最后从 `bucket/*.json` 重建本地应用索引。它不会执行 bucket 里的脚本。可以使用 `--no-self-update` 或 `--no-bucket-update` 跳过对应阶段。
+
+## Bucket 结构
+
+Spork bucket 采用接近 Scoop 的约定，把应用 manifest 放在 `bucket/` 目录：
+
+```text
+bucket/
+  code.json
+  gh.json
+bucket.json
+```
+
+每个 `bucket/*.json` 都是 Spork 可以直接消费的元数据。仓库里的自动化可以更新这些文件，但客户端只会在拉取 bucket 后读取 JSON。
 
 ## 配置
 
@@ -167,7 +180,6 @@ spork config set language auto
 ```bash
 SPORK_LANG=en spork doctor
 SPORK_LANGUAGE=zh spork list
-SPORK_ALLOW_LOCAL_RESOLVE=true spork update
 SPORK_DOWNLOAD_TIMEOUT_SECONDS=30 spork download <app-id>
 SPORK_PACKAGE_MANAGER=dnf spork doctor
 SPORK_HOME=/tmp/spork-dev spork doctor
@@ -212,7 +224,7 @@ Spork 不会把被管理的软件安装到 `~/.spork`。这个目录只保存 bu
 Spork 是开源项目，欢迎实用、清晰、可测试的贡献：
 
 - 改进包管理器适配器。
-- 增加 provider 支持。
+- 改进 bucket 自动化。
 - 改进 bucket 和 manifest 校验。
 - 编写或维护公开 bucket。
 - 改进文档。

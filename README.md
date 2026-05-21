@@ -136,10 +136,23 @@ spork checkup
 spork export --config
 spork import scoopfile.json --config
 spork cleanup
-spork create my-app ./my-app.json --url https://example.com/my-app.deb
+spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
 ```
 
-`spork update` updates Spork itself with `git pull --ff-only`, updates git buckets, then rebuilds the local app index. Use `--no-self-update` or `--no-bucket-update` to skip either phase.
+`spork update` updates Spork itself with `git pull --ff-only`, updates git buckets, then rebuilds the local app index from `bucket/*.json`. It does not execute bucket scripts. Use `--no-self-update` or `--no-bucket-update` to skip either phase.
+
+## Bucket Layout
+
+Spork buckets follow the Scoop convention of storing app manifests under `bucket/`:
+
+```text
+bucket/
+  code.json
+  gh.json
+bucket.json
+```
+
+Each `bucket/*.json` file is directly consumable metadata. Automation may update these files in the bucket repository, but clients only read JSON after pulling the bucket.
 
 ## Configuration
 
@@ -167,7 +180,6 @@ Temporary environment overrides:
 ```bash
 SPORK_LANG=en spork doctor
 SPORK_LANGUAGE=zh spork list
-SPORK_ALLOW_LOCAL_RESOLVE=true spork update
 SPORK_DOWNLOAD_TIMEOUT_SECONDS=30 spork download <app-id>
 SPORK_PACKAGE_MANAGER=dnf spork doctor
 SPORK_HOME=/tmp/spork-dev spork doctor
@@ -212,7 +224,7 @@ Some Scoop commands depend on Windows portable-app and shim behavior. They are i
 Spork is open source and welcomes practical contributions:
 
 - Improve package-manager adapters.
-- Add provider support.
+- Improve bucket automation.
 - Improve bucket and manifest validation.
 - Write or maintain public buckets.
 - Improve documentation.

@@ -5,46 +5,27 @@ from . import paths
 from .bucket import list_buckets, update_bucket
 from .config import load_config, now_iso, write_json
 from .errors import AppNotFoundError, IndexError
-from .manifest import read_generated_dir, read_manifest_dir, validate_generated_app
+from .manifest import read_app_dir
 from .output import warn
-from .providers import resolve_manifest
 
 
-def _bucket_apps(bucket: dict[str, Any], allow_local_resolve: bool) -> list[dict[str, Any]]:
+def _bucket_apps(bucket: dict[str, Any]) -> list[dict[str, Any]]:
     bucket_path = Path(bucket["path"])
-    generated = read_generated_dir(bucket_path / "generated")
-    if generated:
-        for app in generated:
-            app["bucket"] = bucket["name"]
-        return generated
-    if not allow_local_resolve:
-        warn(f"bucket {bucket['name']} 没有 generated index，已跳过。")
-        return []
-    if not bucket.get("trusted", False):
-        warn(f"bucket {bucket['name']} 未被信任，不能执行本地解析。")
-        return []
-    apps: list[dict[str, Any]] = []
-    for manifest in read_manifest_dir(bucket_path / "apps"):
-        try:
-            app = resolve_manifest(manifest)
-            app["bucket"] = bucket["name"]
-            validate_generated_app(app, bucket_path / "apps" / f"{manifest.get('id', 'unknown')}.json")
-            apps.append(app)
-        except Exception as exc:
-            warn(f"解析 {manifest.get('id', '<unknown>')} 失败：{exc}")
+    apps = read_app_dir(bucket_path / "bucket", bucket["name"])
+    if not apps:
+        warn(f"bucket {bucket['name']} 没有 bucket/*.json manifest，已跳过。")
     return apps
 
 
-def update_index(local_resolve: bool = False, no_bucket_update: bool = False) -> dict[str, Any]:
+def update_index(no_bucket_update: bool = False) -> dict[str, Any]:
     config = load_config()
     if config.get("autoUpdateBuckets", True) and not no_bucket_update:
         update_bucket()
 
-    allow_local_resolve = local_resolve or bool(config.get("allowLocalResolve", False))
     merged_by_id: dict[str, dict[str, Any]] = {}
     ordered_ids: list[str] = []
     for bucket in list_buckets():
-        apps = _bucket_apps(bucket, allow_local_resolve)
+        apps = _bucket_apps(bucket)
         bucket_index = {"schemaVersion": 1, "updatedAt": now_iso(), "apps": apps}
         write_json(paths.index_dir() / f"{bucket['name']}.json", bucket_index)
         for app in apps:

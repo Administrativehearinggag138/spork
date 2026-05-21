@@ -13,8 +13,6 @@ DEFAULT_CONFIG = {
     "schemaVersion": 1,
     "arch": "amd64",
     "autoUpdateBuckets": True,
-    "preferGeneratedIndex": True,
-    "allowLocalResolve": False,
     "downloadTimeoutSeconds": 120,
     "installConfirm": True,
     "language": normalize_language(os.environ.get("LANG")),
@@ -24,8 +22,6 @@ DEFAULT_CONFIG = {
 ENV_OVERRIDES = {
     "SPORK_ARCH": ("arch", str),
     "SPORK_AUTO_UPDATE_BUCKETS": ("autoUpdateBuckets", "bool"),
-    "SPORK_PREFER_GENERATED_INDEX": ("preferGeneratedIndex", "bool"),
-    "SPORK_ALLOW_LOCAL_RESOLVE": ("allowLocalResolve", "bool"),
     "SPORK_DOWNLOAD_TIMEOUT_SECONDS": ("downloadTimeoutSeconds", int),
     "SPORK_INSTALL_CONFIRM": ("installConfirm", "bool"),
     "SPORK_LANG": ("language", str),
