@@ -1,8 +1,10 @@
 # Spork
 
-Spork is a Scoop-style third-party package manager for Linux.
+Spork is a Scoop-style third-party package manager for Linux, focused on DEB package discovery, download, and install workflows for apt/dpkg-based systems.
 
-It borrows the bucket-and-manifest workflow from [Scoop](https://scoop.sh/), but keeps Linux package installation in the hands of the system package manager.
+It borrows the bucket-and-manifest workflow from [Scoop](https://scoop.sh/), the Windows package manager, but keeps Linux package installation in the hands of the system package manager.
+
+Keywords: Linux package manager, DEB package manager, Debian package manager, Ubuntu package manager, apt package manager, dpkg, Scoop-style package manager, bucket manifest package manager.
 
 ```text
 Spork finds packages. Your system package manager installs packages.

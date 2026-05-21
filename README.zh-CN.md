@@ -1,8 +1,10 @@
 # Spork
 
-Spork 是一个受 Scoop 启发的 Linux 第三方包管理工具。
+Spork 是一个受 Scoop 启发的 Linux 第三方包管理工具，重点面向 apt/dpkg 系统的 DEB 软件包发现、下载和安装流程。
 
-它借鉴了 Scoop 的 bucket 和 manifest 工作流，但不会替代 Linux 发行版自己的包管理器。
+它借鉴了 Scoop 这个 Windows 包管理器的 bucket 和 manifest 工作流，但不会替代 Linux 发行版自己的包管理器。
+
+关键词：Linux package manager、DEB package manager、Debian package manager、Ubuntu package manager、apt package manager、dpkg、Scoop-style package manager、bucket manifest package manager。
 
 ```text
 Spork 负责发现软件，系统包管理器负责安装软件。
