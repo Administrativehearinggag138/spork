@@ -42,7 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog=CLI_NAME, description=f"{BRAND_NAME}: Scoop-style third-party Linux package manager.")
     parser.add_argument("--version", action="version", version=f"{BRAND_NAME} ({CLI_NAME}) {__version__}")
     _add_common(parser)
-    sub = parser.add_subparsers(dest="command", required=True)
+    sub = parser.add_subparsers(dest="command")
 
     bucket = sub.add_parser("bucket", help="管理 bucket")
     bucket_sub = bucket.add_subparsers(dest="bucket_command", required=True)
@@ -237,6 +237,9 @@ def dispatch(args: argparse.Namespace) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command is None:
+        parser.print_help()
+        return 0
     try:
         dispatch(args)
         return 0

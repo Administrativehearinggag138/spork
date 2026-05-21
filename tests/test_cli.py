@@ -8,6 +8,25 @@ from unittest.mock import patch
 from spork.cli import main
 
 
+class HelpCommandTest(unittest.TestCase):
+    def test_no_arguments_prints_help_like_dash_h(self) -> None:
+        def run_cli(argv: list[str]) -> tuple[int, str]:
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                try:
+                    exit_code = main(argv)
+                except SystemExit as exc:
+                    exit_code = int(exc.code or 0)
+            return exit_code, stdout.getvalue()
+
+        no_args_exit_code, no_args_output = run_cli([])
+        help_exit_code, help_output = run_cli(["-h"])
+
+        self.assertEqual(no_args_exit_code, 0)
+        self.assertEqual(help_exit_code, 0)
+        self.assertEqual(no_args_output, help_output)
+
+
 class ListCommandTest(unittest.TestCase):
     def test_list_defaults_to_installed_apps(self) -> None:
         installed = [
