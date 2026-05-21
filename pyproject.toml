@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spork"
+version = "0.1.0"
+description = "Spork: a Scoop-style third-party Linux package manager."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Spork contributors" }]
+dependencies = []
+
+[project.scripts]
+spork = "spork.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["spork*"]

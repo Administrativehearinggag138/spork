@@ -1,0 +1,226 @@
+# Spork
+
+Spork 是一个受 Scoop 启发的 Linux 第三方包管理工具。
+
+它借鉴了 Scoop 的 bucket 和 manifest 工作流，但不会替代 Linux 发行版自己的包管理器。
+
+```text
+Spork 负责发现软件，系统包管理器负责安装软件。
+```
+
+[English](README.md)
+
+## 项目状态
+
+Spork 是一个开源项目，目前仍处于早期开发阶段。当前命令已经可以用于本地测试和实验，但 manifest、bucket 和包管理器适配器仍可能继续调整。
+
+## 项目目标
+
+Linux 已经有成熟的包管理器，Spork 不打算重新实现一套安装系统。
+
+Spork 只做一个轻量的第三方软件发现层：
+
+- bucket 描述系统仓库之外的软件来源。
+- manifest 描述软件包、版本、主页、下载地址等元数据。
+- 安装、升级、删除、依赖解析和系统状态仍交给系统包管理器处理。
+
+这个边界让 Spork 保持简单，也更符合 Linux 的软件管理方式。
+
+## 功能
+
+- 类 Scoop 的 bucket 和 app manifest。
+- 从 bucket 构建本地应用索引。
+- 通过系统包管理器适配器执行安装、升级、删除、清理和自动删除。
+- 支持只下载软件包，不安装。
+- 支持搜索、查看信息、查看主页、查看 manifest、查看依赖。
+- 支持导出和导入 bucket、配置和 Spork 管理状态。
+- 支持 hold 和 unhold Spork 管理的应用升级状态。
+- 支持英文和中文输出。
+- 用户级安装，默认目录为 `~/.spork`。
+
+## 支持的包管理器
+
+当前支持的适配器名称：
+
+- `apt`
+- `apt-get`
+- `dnf`
+- `yum`
+- `zypper`
+- `pacman`
+
+Debian 和 Ubuntu 环境会保留 `apt install --simulate` 预检查行为。
+
+## 从源码安装
+
+```bash
+./scripts/install.sh
+spork --help
+```
+
+安装器是用户级的，会初始化以下目录：
+
+```text
+~/.spork/
+  apps/
+    spork/
+      current/        # Spork 源码 checkout
+  shims/
+    spork -> ~/.spork/apps/spork/current/scripts/spork
+  config/
+    config.json
+    buckets.json
+    trusted-buckets.json
+  buckets/
+  cache/
+    index/
+    downloads/
+  state/
+    installed.json
+```
+
+如果 shell 找不到 `spork` 命令，请把 shim 目录加入 `PATH`：
+
+```bash
+export PATH="$HOME/.spork/shims:$PATH"
+```
+
+安装器会检查 `python3`、`git`、`sudo` 以及当前包管理器所需的基础命令。它会根据 `/etc/os-release` 和系统可用命令检测包管理器，并把结果写入 `config.json` 的 `packageManager` 字段。
+
+## 快速开始
+
+先做一次不会安装软件的本地环境检查：
+
+```bash
+./scripts/spork doctor
+```
+
+从源码安装后可以直接使用：
+
+```bash
+spork doctor
+spork bucket add main <bucket-url>
+spork update
+spork search <query>
+spork info <app-id>
+```
+
+## 常用命令
+
+```bash
+spork bucket add main <bucket-url>
+spork bucket list
+spork bucket update
+spork update
+
+spork list
+spork list --installed
+spork search <query>
+spork info <app-id>
+spork cat <app-id>
+spork home <app-id>
+spork depends <app-id>
+
+spork download <app-id>
+spork install <app-id>
+spork upgrade <app-id>
+spork remove <app-id>
+spork purge <app-id>
+spork autoremove
+
+spork hold <app-id>
+spork unhold <app-id>
+spork status
+spork checkup
+
+spork export --config
+spork import scoopfile.json --config
+spork cleanup
+spork create my-app ./my-app.json --url https://example.com/my-app.deb
+```
+
+`spork update` 会先用 `git pull --ff-only` 更新 Spork 自身，再更新 git bucket，最后重建本地应用索引。可以使用 `--no-self-update` 或 `--no-bucket-update` 跳过对应阶段。
+
+## 配置
+
+查看或修改包管理器：
+
+```bash
+spork config get packageManager
+spork config set packageManager apt
+spork config set packageManager dnf
+spork config set packageManager zypper
+spork config set packageManager pacman
+```
+
+选择输出语言：
+
+```bash
+spork --lang en doctor
+spork config set language zh
+spork config set language en
+spork config set language auto
+```
+
+临时环境变量覆盖：
+
+```bash
+SPORK_LANG=en spork doctor
+SPORK_LANGUAGE=zh spork list
+SPORK_ALLOW_LOCAL_RESOLVE=true spork update
+SPORK_DOWNLOAD_TIMEOUT_SECONDS=30 spork download <app-id>
+SPORK_PACKAGE_MANAGER=dnf spork doctor
+SPORK_HOME=/tmp/spork-dev spork doctor
+```
+
+## 源码结构
+
+Spork 使用 Python 项目常见的 `src/` 布局：
+
+```text
+src/spork/
+  package_managers/
+    apt.py
+    dnf.py
+    pacman.py
+    zypper.py
+```
+
+新增包管理器适配器时，把实现放到 `src/spork/package_managers/`，再在 `src/spork/package_managers/__init__.py` 注册。
+
+## Spork 不做什么
+
+Spork 不会把被管理的软件安装到 `~/.spork`。这个目录只保存 bucket、元数据、状态和下载缓存。真正的软件安装和删除仍然交给配置的系统包管理器。
+
+一些 Scoop 命令依赖 Windows 的便携应用和 shim 模型，因此 Spork 不实现这些命令：
+
+- `alias`
+- `prefix`
+- `reset`
+- `shim`
+- `virustotal`
+
+## 卸载
+
+```bash
+./scripts/uninstall.sh
+./scripts/uninstall.sh --keep-data
+```
+
+## 贡献
+
+Spork 是开源项目，欢迎实用、清晰、可测试的贡献：
+
+- 改进包管理器适配器。
+- 增加 provider 支持。
+- 改进 bucket 和 manifest 校验。
+- 编写或维护公开 bucket。
+- 改进文档。
+
+请保持项目边界清晰：Spork 负责发现和描述软件，系统包管理器负责安装。
+
+## 致谢
+
+Spork 深受 Scoop 启发。Scoop 简单直接的 bucket 模型、可读的 manifest 和实用的命令行体验，对这个项目影响很大。
+
+向 Scoop 项目和所有贡献者致敬。
