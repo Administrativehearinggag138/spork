@@ -45,6 +45,8 @@ class PackageManager:
         return [f"sudo {self.install_command} install {path}"]
 
     def remove_plan(self, package: str, purge: bool = False) -> str:
+        if purge:
+            raise AptError(f"{self.name} 适配器暂不支持 purge。")
         op = "purge" if purge else "remove"
         return f"sudo {self.install_command} {op} {package}"
 
@@ -61,7 +63,7 @@ class PackageManager:
         run_command(["sudo", self.install_command, "remove", package], "卸载失败，请检查上方包管理器输出。")
 
     def purge_package(self, package: str) -> None:
-        self.remove_package(package)
+        raise AptError(f"{self.name} 适配器暂不支持 purge。")
 
     def autoremove(self) -> None:
         run_command(["sudo", self.install_command, "autoremove"], "自动清理失败，请检查上方包管理器输出。")

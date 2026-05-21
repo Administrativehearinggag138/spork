@@ -32,7 +32,7 @@ Spork 只做一个轻量的第三方软件发现层：
 
 - 类 Scoop 的 bucket 和 app manifest。
 - 从 bucket 构建本地应用索引。
-- 通过系统包管理器适配器执行安装、升级、删除、清理和自动删除。
+- 通过系统包管理器适配器执行安装、升级、删除和可选清理。
 - 支持只下载软件包，不安装。
 - 支持搜索、查看信息、查看主页、查看 manifest、查看依赖。
 - 支持按安装时检测到的 CPU 架构过滤 bucket 中的不同构建。
@@ -154,8 +154,8 @@ spork install <app-id>
 spork update <app-id>
 spork status
 spork uninstall <app-id>
-spork purge <app-id>
-spork autoremove
+spork uninstall <app-id> --purge
+spork uninstall <app-id> --autoremove
 spork cache clean
 spork checkup
 spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb

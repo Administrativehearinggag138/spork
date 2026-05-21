@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from ..errors import AptError
 from .common import PackageManager, capture_command, run_command
 
 
@@ -11,10 +12,12 @@ class DnfPackageManager(PackageManager):
         return [f"sudo {self.install_command} install {path}"]
 
     def remove_plan(self, package: str, purge: bool = False) -> str:
+        if purge:
+            raise AptError(f"{self.install_command} 适配器暂不支持 purge。")
         return f"sudo {self.install_command} remove {package}"
 
     def purge_package(self, package: str) -> None:
-        self.remove_package(package)
+        raise AptError(f"{self.install_command} 适配器暂不支持 purge。")
 
     def installed_version(self, package: str) -> str | None:
         result = capture_command(["rpm", "-q", "--qf", "%{VERSION}-%{RELEASE}", package])

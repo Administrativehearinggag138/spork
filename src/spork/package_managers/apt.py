@@ -29,6 +29,10 @@ class AptPackageManager(PackageManager):
         self.preinstall_file(path)
         run_command(["sudo", self.install_command, "install", str(path)], "apt 安装失败，请检查上方 apt 输出。")
 
+    def remove_plan(self, package: str, purge: bool = False) -> str:
+        op = "purge" if purge else "remove"
+        return f"sudo {self.install_command} {op} {package}"
+
     def purge_package(self, package: str) -> None:
         run_command(["sudo", self.install_command, "purge", package], "apt purge 失败，请检查上方 apt 输出。")
 

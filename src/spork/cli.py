@@ -113,16 +113,16 @@ def build_parser() -> argparse.ArgumentParser:
     install_cmd.add_argument("app_id")
     install_cmd.add_argument("-y", "--yes", action="store_true")
 
-    uninstall_cmd = sub.add_parser("uninstall", help="卸载应用")
-    uninstall_cmd.add_argument("app_id")
+    uninstall_cmd = sub.add_parser(
+        "uninstall",
+        help="卸载应用",
+        usage="spork uninstall <app-id> [-y] [--package PACKAGE] [--purge] [--autoremove]",
+    )
+    uninstall_cmd.add_argument("app_id", metavar="app-id")
     uninstall_cmd.add_argument("-y", "--yes", action="store_true")
     uninstall_cmd.add_argument("--package")
-    purge_cmd = sub.add_parser("purge", help="卸载应用并清理系统级配置")
-    purge_cmd.add_argument("app_id")
-    purge_cmd.add_argument("-y", "--yes", action="store_true")
-    purge_cmd.add_argument("--package")
-    autoremove_cmd = sub.add_parser("autoremove", help="调用系统包管理器自动清理")
-    autoremove_cmd.add_argument("-y", "--yes", action="store_true")
+    uninstall_cmd.add_argument("--purge", action="store_true", help="卸载应用并清理系统级配置（需要包管理器支持）")
+    uninstall_cmd.add_argument("--autoremove", action="store_true", help="卸载完成后调用系统包管理器自动清理（需要包管理器支持）")
 
     cache_cmd = sub.add_parser("cache", help="管理下载缓存")
     cache_sub = cache_cmd.add_subparsers(dest="cache_command", required=True)
@@ -207,10 +207,10 @@ def dispatch(args: argparse.Namespace) -> None:
             table(rows, [("id", "ID"), ("package", "PACKAGE"), ("installed", "INSTALLED"), ("latest", "LATEST"), ("bucket", "BUCKET")])
     elif args.command == "install":
         install(args.app_id, yes=args.yes)
-    elif args.command in {"uninstall", "purge"}:
-        remove(args.app_id, yes=args.yes, package=args.package, purge=args.command == "purge")
-    elif args.command == "autoremove":
-        autoremove(yes=args.yes)
+    elif args.command == "uninstall":
+        removed = remove(args.app_id, yes=args.yes, package=args.package, purge=args.purge)
+        if removed and args.autoremove:
+            autoremove(yes=args.yes)
     elif args.command == "cache":
         if args.cache_command == "clean":
             cmd_cache_clean(args)

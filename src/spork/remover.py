@@ -17,14 +17,13 @@ def resolve_app_or_state(app_id: str, package: str | None = None) -> dict:
         raise AppNotFoundError(f"未找到 {app_id}，可使用 --package 指定 Debian 包名。")
 
 
-def remove(app_id: str, yes: bool = False, package: str | None = None, purge: bool = False) -> None:
+def remove(app_id: str, yes: bool = False, package: str | None = None, purge: bool = False) -> bool:
     app = resolve_app_or_state(app_id, package=package)
     pkg = app["package"]
     installed = dpkg.installed_version(pkg)
     if not installed:
         print(f"未安装：{pkg}")
-        return
-    op = "purge" if purge else "remove"
+        return False
     title = "即将彻底清理" if purge else "即将卸载"
     print(f"{title}：\n")
     print(f"  应用：{app.get('name', app_id)}")
@@ -36,13 +35,14 @@ def remove(app_id: str, yes: bool = False, package: str | None = None, purge: bo
     print(f"\n卸载阶段将调用：\n  {system_packages.remove_plan(pkg, purge=purge)}")
     if not confirm("继续吗？", yes=yes):
         print("已取消。")
-        return
+        return False
     if purge:
         system_packages.purge_package(pkg)
     else:
         system_packages.remove_package(pkg)
     remove_installed(app_id)
     print(f"完成：{app_id}")
+    return True
 
 
 def autoremove(yes: bool = False) -> None:
