@@ -36,8 +36,6 @@ This keeps Spork small and makes the boundary explicit.
 - Download-only mode for package files.
 - App search, info, homepage, manifest display, and dependency inspection.
 - CPU architecture filtering for buckets that publish multiple builds.
-- Export and import of buckets, config, and Spork-managed state.
-- Hold and unhold support for Spork-managed app upgrade state.
 - English and Chinese output selection.
 - User-scoped installation under `~/.spork`.
 
@@ -148,15 +146,9 @@ spork upgrade <app-id>
 spork remove <app-id>
 spork purge <app-id>
 spork autoremove
-
-spork hold <app-id>
-spork unhold <app-id>
-spork status
-spork checkup
-
-spork export --config
-spork import scoopfile.json --config
-spork cleanup
+spork check
+spork cache clean
+spork doctor
 spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
 ```
 
@@ -248,14 +240,6 @@ New package-manager adapters should be added under `src/spork/package_managers/`
 ## What Spork Does Not Do
 
 Spork does not install managed apps under `~/.spork`. It stores buckets, metadata, state, and downloaded package files there. Actual app installation and removal still go through the configured system package manager.
-
-Some Scoop commands depend on Windows portable-app and shim behavior. They are intentionally not implemented:
-
-- `alias`
-- `prefix`
-- `reset`
-- `shim`
-- `virustotal`
 
 ## Uninstall
 

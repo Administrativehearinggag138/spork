@@ -7,8 +7,7 @@ from .downloader import download
 from .errors import AppNotFoundError
 from .index import all_apps, find_app
 from .output import confirm, warn
-from .i18n import t
-from .state import is_held, upsert_installed
+from .state import upsert_installed
 
 
 def show_install_plan(app: dict, action: str) -> None:
@@ -52,9 +51,6 @@ def install(app_id: str, yes: bool = False) -> None:
 def _upgrade_candidates(apps: Iterable[dict]) -> list[tuple[dict, str]]:
     candidates: list[tuple[dict, str]] = []
     for app in apps:
-        if is_held(app["id"]):
-            print(t("skip_held", app_id=app["id"]))
-            continue
         installed = dpkg.installed_version(app["package"])
         if installed and dpkg.compare_versions(installed, "lt", app["version"]):
             candidates.append((app, installed))

@@ -36,8 +36,6 @@ Spork 只做一个轻量的第三方软件发现层：
 - 支持只下载软件包，不安装。
 - 支持搜索、查看信息、查看主页、查看 manifest、查看依赖。
 - 支持按安装时检测到的 CPU 架构过滤 bucket 中的不同构建。
-- 支持导出和导入 bucket、配置和 Spork 管理状态。
-- 支持 hold 和 unhold Spork 管理的应用升级状态。
 - 支持英文和中文输出。
 - 用户级安装，默认目录为 `~/.spork`。
 
@@ -148,15 +146,9 @@ spork upgrade <app-id>
 spork remove <app-id>
 spork purge <app-id>
 spork autoremove
-
-spork hold <app-id>
-spork unhold <app-id>
-spork status
-spork checkup
-
-spork export --config
-spork import scoopfile.json --config
-spork cleanup
+spork check
+spork cache clean
+spork doctor
 spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
 ```
 
@@ -248,14 +240,6 @@ src/spork/
 ## Spork 不做什么
 
 Spork 不会把被管理的软件安装到 `~/.spork`。这个目录只保存 bucket、元数据、状态和下载缓存。真正的软件安装和删除仍然交给配置的系统包管理器。
-
-一些 Scoop 命令依赖 Windows 的便携应用和 shim 模型，因此 Spork 不实现这些命令：
-
-- `alias`
-- `prefix`
-- `reset`
-- `shim`
-- `virustotal`
 
 ## 卸载
 

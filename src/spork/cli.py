@@ -9,17 +9,11 @@ from .branding import BRAND_NAME, CLI_NAME
 from .bucket import add_bucket, list_buckets, remove_bucket, update_bucket
 from .commands import (
     cat_command,
-    cleanup_command,
     config_command,
     create_command,
     depends_command,
     download_command,
-    export_command,
-    hold_command,
     home_command,
-    import_command,
-    unsupported,
-    which_command,
 )
 from .config import ensure_initial_files, load_config
 from .doctor import run_doctor
@@ -79,10 +73,6 @@ def build_parser() -> argparse.ArgumentParser:
     _add_json(info)
     check_cmd = sub.add_parser("check", help="检查可升级软件")
     _add_json(check_cmd)
-    status_cmd = sub.add_parser("status", help="检查可升级软件")
-    _add_json(status_cmd)
-    checkup_cmd = sub.add_parser("checkup", help="检查环境")
-    _add_json(checkup_cmd)
 
     config_cmd = sub.add_parser("config", help="读写配置")
     config_sub = config_cmd.add_subparsers(dest="config_command", required=True)
@@ -100,25 +90,11 @@ def build_parser() -> argparse.ArgumentParser:
     download_cmd = sub.add_parser("download", help="下载应用 deb 到缓存，不安装")
     download_cmd.add_argument("app_id")
 
-    export_cmd = sub.add_parser("export", help=f"导出 bucket、配置和 {BRAND_NAME} 管理状态")
-    export_cmd.add_argument("path", nargs="?")
-    export_cmd.add_argument("--config", action="store_true", help="包含 config.json")
-    import_cmd = sub.add_parser("import", help="导入 bucket 和配置，不自动安装应用")
-    import_cmd.add_argument("path")
-    import_cmd.add_argument("--config", action="store_true", help="导入 config")
-
-    for name, held in (("hold", True), ("unhold", False)):
-        hold_parser = sub.add_parser(name, help="锁定或解除应用升级")
-        hold_parser.add_argument("app_id")
-        hold_parser.set_defaults(held=held)
-
     home_cmd = sub.add_parser("home", help="显示应用主页")
     home_cmd.add_argument("app_id")
     depends_cmd = sub.add_parser("depends", help="显示包管理器依赖信息")
     depends_cmd.add_argument("app_id")
     depends_cmd.add_argument("--package")
-    cleanup_cmd = sub.add_parser("cleanup", help=f"清理 {BRAND_NAME} 下载缓存")
-    cleanup_cmd.add_argument("-y", "--yes", action="store_true")
     create_cmd = sub.add_parser("create", help="创建 fixed-url app manifest 模板")
     create_cmd.add_argument("app_id")
     create_cmd.add_argument("path")
@@ -127,11 +103,6 @@ def build_parser() -> argparse.ArgumentParser:
     create_cmd.add_argument("--url")
     create_cmd.add_argument("--version")
     create_cmd.add_argument("--arch")
-    which_cmd = sub.add_parser("which", help="查找 PATH 中的可执行文件")
-    which_cmd.add_argument("name")
-
-    for unsupported_name in ("alias", "prefix", "reset", "shim", "virustotal"):
-        sub.add_parser(unsupported_name, help="不适用于 Debian/apt 模型")
 
     install_cmd = sub.add_parser("install", help="安装应用")
     install_cmd.add_argument("app_id")
@@ -142,20 +113,23 @@ def build_parser() -> argparse.ArgumentParser:
     upgrade_cmd.add_argument("-y", "--yes", action="store_true")
     upgrade_cmd.add_argument("--stop-on-error", action="store_true")
 
-    for name in ("remove", "uninstall", "purge"):
-        cmd = sub.add_parser(name)
-        cmd.add_argument("app_id")
-        cmd.add_argument("-y", "--yes", action="store_true")
-        cmd.add_argument("--package")
-    autoremove_cmd = sub.add_parser("autoremove")
+    remove_cmd = sub.add_parser("remove", help="卸载应用")
+    remove_cmd.add_argument("app_id")
+    remove_cmd.add_argument("-y", "--yes", action="store_true")
+    remove_cmd.add_argument("--package")
+    purge_cmd = sub.add_parser("purge", help="卸载应用并清理系统级配置")
+    purge_cmd.add_argument("app_id")
+    purge_cmd.add_argument("-y", "--yes", action="store_true")
+    purge_cmd.add_argument("--package")
+    autoremove_cmd = sub.add_parser("autoremove", help="调用系统包管理器自动清理")
     autoremove_cmd.add_argument("-y", "--yes", action="store_true")
 
-    cache_cmd = sub.add_parser("cache")
+    cache_cmd = sub.add_parser("cache", help="管理下载缓存")
     cache_sub = cache_cmd.add_subparsers(dest="cache_command", required=True)
     cache_clean = cache_sub.add_parser("clean")
     cache_clean.add_argument("-y", "--yes", action="store_true")
 
-    doctor_cmd = sub.add_parser("doctor")
+    doctor_cmd = sub.add_parser("doctor", help="检查环境")
     _add_json(doctor_cmd)
     return parser
 
@@ -222,7 +196,7 @@ def dispatch(args: argparse.Namespace) -> None:
             table(rows, [("id", "ID"), ("name", "NAME"), ("package", "PACKAGE"), ("version", "VERSION"), ("bucket", "BUCKET")])
     elif args.command == "info":
         cmd_info(args)
-    elif args.command in {"check", "status"}:
+    elif args.command == "check":
         rows = check()
         if args.json:
             print_json(rows)
@@ -232,14 +206,14 @@ def dispatch(args: argparse.Namespace) -> None:
         install(args.app_id, yes=args.yes)
     elif args.command == "upgrade":
         upgrade(args.app_id, yes=args.yes, stop_on_error=args.stop_on_error)
-    elif args.command in {"remove", "uninstall", "purge"}:
+    elif args.command in {"remove", "purge"}:
         remove(args.app_id, yes=args.yes, package=args.package, purge=args.command == "purge")
     elif args.command == "autoremove":
         autoremove(yes=args.yes)
     elif args.command == "cache":
         if args.cache_command == "clean":
             cmd_cache_clean(args)
-    elif args.command in {"doctor", "checkup"}:
+    elif args.command == "doctor":
         rows = run_doctor()
         if args.json:
             print_json(rows)
@@ -251,24 +225,12 @@ def dispatch(args: argparse.Namespace) -> None:
         cat_command(args.app_id)
     elif args.command == "download":
         download_command(args.app_id)
-    elif args.command == "export":
-        export_command(Path(args.path) if args.path else None, include_config=args.config)
-    elif args.command == "import":
-        import_command(Path(args.path), include_config=args.config)
-    elif args.command in {"hold", "unhold"}:
-        hold_command(args.app_id, args.held)
     elif args.command == "home":
         home_command(args.app_id)
     elif args.command == "depends":
         depends_command(args.app_id, package=args.package)
-    elif args.command == "cleanup":
-        cleanup_command(yes=args.yes)
     elif args.command == "create":
         create_command(args.app_id, Path(args.path), args.name, args.package, args.url, args.version, args.arch)
-    elif args.command == "which":
-        which_command(args.name)
-    elif args.command in {"alias", "prefix", "reset", "shim", "virustotal"}:
-        unsupported(args.command)
 
 
 def main(argv: list[str] | None = None) -> int:
