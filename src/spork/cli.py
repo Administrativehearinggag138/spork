@@ -113,10 +113,10 @@ def build_parser() -> argparse.ArgumentParser:
     upgrade_cmd.add_argument("-y", "--yes", action="store_true")
     upgrade_cmd.add_argument("--stop-on-error", action="store_true")
 
-    remove_cmd = sub.add_parser("remove", help="卸载应用")
-    remove_cmd.add_argument("app_id")
-    remove_cmd.add_argument("-y", "--yes", action="store_true")
-    remove_cmd.add_argument("--package")
+    uninstall_cmd = sub.add_parser("uninstall", help="卸载应用")
+    uninstall_cmd.add_argument("app_id")
+    uninstall_cmd.add_argument("-y", "--yes", action="store_true")
+    uninstall_cmd.add_argument("--package")
     purge_cmd = sub.add_parser("purge", help="卸载应用并清理系统级配置")
     purge_cmd.add_argument("app_id")
     purge_cmd.add_argument("-y", "--yes", action="store_true")
@@ -206,7 +206,7 @@ def dispatch(args: argparse.Namespace) -> None:
         install(args.app_id, yes=args.yes)
     elif args.command == "upgrade":
         upgrade(args.app_id, yes=args.yes, stop_on_error=args.stop_on_error)
-    elif args.command in {"remove", "purge"}:
+    elif args.command in {"uninstall", "purge"}:
         remove(args.app_id, yes=args.yes, package=args.package, purge=args.command == "purge")
     elif args.command == "autoremove":
         autoremove(yes=args.yes)

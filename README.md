@@ -32,7 +32,7 @@ This keeps Spork small and makes the boundary explicit.
 
 - Scoop-style buckets and app manifests.
 - Local app index built from configured buckets.
-- Install, upgrade, remove, purge, and autoremove through a system package manager adapter.
+- Install, upgrade, uninstall, purge, and autoremove through a system package manager adapter.
 - Download-only mode for package files.
 - App search, info, homepage, manifest display, and dependency inspection.
 - CPU architecture filtering for buckets that publish multiple builds.
@@ -143,7 +143,7 @@ spork depends <app-id>
 spork download <app-id>
 spork install <app-id>
 spork upgrade <app-id>
-spork remove <app-id>
+spork uninstall <app-id>
 spork purge <app-id>
 spork autoremove
 spork check

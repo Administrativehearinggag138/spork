@@ -143,7 +143,7 @@ spork depends <app-id>
 spork download <app-id>
 spork install <app-id>
 spork upgrade <app-id>
-spork remove <app-id>
+spork uninstall <app-id>
 spork purge <app-id>
 spork autoremove
 spork check
