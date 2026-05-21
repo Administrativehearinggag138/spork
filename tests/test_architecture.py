@@ -8,6 +8,8 @@ class ArchitectureSelectionTest(unittest.TestCase):
         self.assertEqual(normalize_arch("x86_64"), "amd64")
         self.assertEqual(normalize_arch("aarch64"), "arm64")
         self.assertEqual(normalize_arch("armv7l"), "armhf")
+        self.assertEqual(normalize_arch("mips64le"), "mips64el")
+        self.assertEqual(normalize_arch("loong64"), "loongarch64")
 
     def test_selects_matching_architecture_variant(self) -> None:
         app = {
