@@ -144,7 +144,7 @@ spork bucket update
 spork update
 
 spork list
-spork list --installed
+spork list --available
 spork search <query>
 spork info <app-id>
 spork cat <app-id>

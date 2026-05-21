@@ -65,8 +65,10 @@ def build_parser() -> argparse.ArgumentParser:
     update.add_argument("-y", "--yes", action="store_true")
     update.add_argument("--stop-on-error", action="store_true")
 
-    list_cmd = sub.add_parser("list", help="列出应用")
-    list_cmd.add_argument("--installed", action="store_true", help=f"只列出 {BRAND_NAME} 记录的已安装应用")
+    list_cmd = sub.add_parser("list", help="列出已安装应用")
+    list_filter = list_cmd.add_mutually_exclusive_group()
+    list_filter.add_argument("--installed", action="store_true", help=f"只列出 {BRAND_NAME} 记录的已安装应用（默认行为）")
+    list_filter.add_argument("--available", action="store_true", help="列出索引中的全部可用应用")
     _add_json(list_cmd)
     search = sub.add_parser("search", help="搜索应用")
     search.add_argument("keyword")
@@ -184,7 +186,7 @@ def dispatch(args: argparse.Namespace) -> None:
         merged = update_index(no_bucket_update=args.no_bucket_update)
         print(f"索引更新完成：{len(merged.get('apps', []))} 个应用。")
     elif args.command == "list":
-        rows = list_installed() if args.installed else all_apps()
+        rows = all_apps() if args.available else list_installed()
         if args.json:
             print_json(rows)
         else:
