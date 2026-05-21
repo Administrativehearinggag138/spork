@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 from . import paths
+from .arch import detect_arch
 from .bucket import list_buckets, update_bucket
 from .config import load_config, now_iso, write_json
 from .errors import AppNotFoundError, IndexError
@@ -24,8 +25,9 @@ def update_index(no_bucket_update: bool = False) -> dict[str, Any]:
 
     merged_by_id: dict[str, dict[str, Any]] = {}
     ordered_ids: list[str] = []
+    target_arch = detect_arch()
     for bucket in list_buckets():
-        apps = _bucket_apps(bucket, str(config.get("arch")))
+        apps = _bucket_apps(bucket, target_arch)
         bucket_index = {"schemaVersion": 1, "updatedAt": now_iso(), "apps": apps}
         write_json(paths.index_dir() / f"{bucket['name']}.json", bucket_index)
         for app in apps:

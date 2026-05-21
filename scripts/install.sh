@@ -111,7 +111,7 @@ manager_commands() {
 
 LANGUAGE=$(detect_language)
 PACKAGE_MANAGER=$(detect_package_manager)
-ARCH="${SPORK_ARCH:-$(detect_arch)}"
+ARCH=$(detect_arch)
 
 echo "Installing Spork from: $PROJECT_ROOT"
 echo "Detected package manager: $PACKAGE_MANAGER"
@@ -161,7 +161,6 @@ fi
 
 write_json_if_missing "$CONFIG_DIR/config.json" "{
   \"schemaVersion\": 1,
-  \"arch\": \"$ARCH\",
   \"autoUpdateBuckets\": true,
   \"downloadTimeoutSeconds\": 120,
   \"installConfirm\": true,
