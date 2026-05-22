@@ -55,7 +55,7 @@ Debian and Ubuntu installs keep the existing `apt install --simulate` preflight 
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh | sh
 spork checkup
 spork update
 ```
@@ -92,26 +92,26 @@ The installer checks for the base commands Spork needs, including `python3`, `gi
 By default, the installer downloads Spork from the network:
 
 ```text
-https://github.com/Enkialon/spork.git
+https://github.com/spork-linux/spork.git
 ```
 
 Override the source repository or checkout ref if you maintain a fork:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh \
+curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh \
   | SPORK_REPO_URL=https://github.com/<owner>/spork.git SPORK_REF=<branch-or-tag> sh
 ```
 
 The installer also adds the default bucket:
 
 ```text
-main -> https://github.com/Enkialon/spork-bucket.git
+main -> https://github.com/spork-linux/spork-bucket.git
 ```
 
 Override it during installation if you maintain your own bucket:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh \
+curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh \
   | SPORK_DEFAULT_BUCKET_NAME=main SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git sh
 ```
 

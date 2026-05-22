@@ -55,7 +55,7 @@ Debian 和 Ubuntu 环境会保留 `apt install --simulate` 预检查行为。
 ## 安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh | sh
 spork checkup
 spork update
 ```
@@ -92,26 +92,26 @@ spork update
 默认情况下，安装器会从网络下载 Spork 源码：
 
 ```text
-https://github.com/Enkialon/spork.git
+https://github.com/spork-linux/spork.git
 ```
 
 如果要安装自己的 fork 或指定分支/tag：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh \
+curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh \
   | SPORK_REPO_URL=https://github.com/<owner>/spork.git SPORK_REF=<branch-or-tag> sh
 ```
 
 安装器也会添加默认 bucket：
 
 ```text
-main -> https://github.com/Enkialon/spork-bucket.git
+main -> https://github.com/spork-linux/spork-bucket.git
 ```
 
 如果要在安装时换成自己的 bucket：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Enkialon/spork/main/scripts/install.sh \
+curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh \
   | SPORK_DEFAULT_BUCKET_NAME=main SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git sh
 ```
 

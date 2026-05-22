@@ -2,7 +2,7 @@
 set -eu
 
 APP_NAME="spork"
-DEFAULT_SPORK_REPO_URL="https://github.com/Enkialon/spork.git"
+DEFAULT_SPORK_REPO_URL="https://github.com/spork-linux/spork.git"
 SPORK_REPO_URL="${SPORK_REPO_URL:-$DEFAULT_SPORK_REPO_URL}"
 SPORK_REF="${SPORK_REF:-}"
 SPORK_ROOT="${SPORK_HOME:-$HOME/.$APP_NAME}"
@@ -19,7 +19,7 @@ COMMAND_LINK="$SHIMS_DIR/spork"
 USER_COMMAND_LINK="$USER_BIN_DIR/spork"
 COMMAND_TARGET="$CURRENT_DIR/scripts/spork"
 DEFAULT_BUCKET_NAME="${SPORK_DEFAULT_BUCKET_NAME:-main}"
-DEFAULT_BUCKET_URL="${SPORK_DEFAULT_BUCKET_URL:-https://github.com/Enkialon/spork-bucket.git}"
+DEFAULT_BUCKET_URL="${SPORK_DEFAULT_BUCKET_URL:-https://github.com/spork-linux/spork-bucket.git}"
 DEFAULT_BUCKET_DIR="$BUCKETS_DIR/$DEFAULT_BUCKET_NAME"
 
 need_cmd() {
@@ -125,11 +125,25 @@ install_spork_source() {
   fi
 
   echo "Downloading Spork source from: $SPORK_REPO_URL"
-  git clone "$SPORK_REPO_URL" "$CURRENT_DIR"
+  tmp_dir=$(mktemp -d "$SPORK_APP_DIR/.install.XXXXXX")
+  cleanup_tmp_dir() {
+    rm -rf "$tmp_dir"
+  }
+  trap cleanup_tmp_dir EXIT INT HUP TERM
+
+  git clone "$SPORK_REPO_URL" "$tmp_dir"
 
   if [ -n "$SPORK_REF" ]; then
-    git -C "$CURRENT_DIR" checkout "$SPORK_REF"
+    git -C "$tmp_dir" checkout "$SPORK_REF"
   fi
+
+  if [ ! -f "$tmp_dir/scripts/spork" ]; then
+    echo "error: downloaded Spork source is missing scripts/spork." >&2
+    exit 1
+  fi
+
+  mv "$tmp_dir" "$CURRENT_DIR"
+  trap - EXIT INT HUP TERM
 }
 
 append_path_profile() {
